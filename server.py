@@ -1,12 +1,19 @@
-import asyncio
-import websockets
+import xmltodict
+from flask import Flask, request
+import xml.etree.ElementTree as ET
+import xmltodict
 
-async def echo(websocket):
-    async for message in websocket:
-        await websocket.send(message)
+app = Flask(__name__)
+graphIDs = {}
+simIDs = {}
 
-async def main():
-    async with websockets.serve(echo, "localhost", 8765):
-        await asyncio.Future()  # run forever
+@app.post('/api/graphs/loadXML')
+def loadXML():
+    xml = request.data
+    tree = ET.parse(xml)
+    root = tree.getroot()
 
-asyncio.run(main())
+    subroot = root.find('events')
+
+    for e in subroot.findall('event'):
+        print(e.attrib)
