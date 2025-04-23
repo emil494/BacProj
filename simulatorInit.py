@@ -1,4 +1,4 @@
-from pm4py_dcr_feature_dcr_in_pm4py_revised.pm4py.objects.dcr.obj import DcrGraph
+from pm4py.objects.dcr.obj import DcrGraph
 
 def findKey(jsn : dict, key : str):
     if key in jsn.keys():
