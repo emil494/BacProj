@@ -4,7 +4,7 @@ test = {'GID': 0, 'graph': {"dcrgraph": {"@title": "Aflevering 3", "@dataTypesSt
 import xmltodict, json
 from flask import Flask, request
 import xml.etree.ElementTree as ET
-from pm4py_dcr_feature_dcr_in_pm4py_revised.pm4py.objects.dcr.obj import DcrGraph
+from pm4py.objects.dcr.obj import DcrGraph
 from simulatorInit import createDCRgraph                                                     
 
 app = Flask(__name__)
