@@ -5,36 +5,75 @@ import xmltodict, json
 from flask import Flask, request
 import xml.etree.ElementTree as ET
 from pm4py.objects.dcr.obj import DcrGraph
-from simulatorInit import createDCRgraph                                                     
+from simulatorInit import createDCRgraph                                       
 
 app = Flask(__name__)
 graphIDs = []
 simIDs = []
 graphIDs.append(test)
 
+def getGraph(GID):
+    for obj in graphIDs:
+        if obj['GID'] == GID:
+            return obj
+    return None
+
+def getSim(SID):
+    for obj in simIDs:
+            if obj  ['SID'] == SID:
+                return obj
+    return None
+            
+def replaceAllInstances(input, old, new):
+    if isinstance(input, dict):
+        return {k: replaceAllInstances(v, old, new) for k, v in input.items()}
+    elif isinstance(input, list):
+        return [replaceAllInstances(elem, old, new) for elem in input]
+    elif input == old:
+        return new
+    return input
+        
+
 @app.post('/api/graphs/loadXML')
 def loadXML():
     # TODO: Error handling
     xml = request.data
     dict = xmltodict.parse(xml)
-    j = {'GID': graphIDs.__len__(), 'graph': dict}
-    graphIDs.append(j)
-    return j
+    dict = replaceAllInstances(dict, 'null', None) # For easier python handling
+    jsn = {'GID': graphIDs.__len__(), 'graph': dict}
+    graphIDs.append(jsn)
+    print(jsn['graph'])
+    return jsn
 
 @app.get('/api/graphs/<int:GID>')
 def getGraph(GID):
-    graph = []
-    for i in graphIDs:
-        if i['GID'] == GID:
-            graph = i
-            print('success')
-            break
-    # TODO: Different message if unsuccessful
-    return graph
+    graph = getGraph(GID)
+    if graph is not None:
+        return graph
+    return "Unknown GID"
 
 # Creates a DCRGraph object of GID
-@app.post('/api/graphs/<int:GID>/simulator')
+@app.post('/api/graphs/<int:GID>/createSimulator')
 def SimulateInit(GID):
-    dcr = createDCRgraph(graphIDs[0])
-    # TODO: Lookup GID, add SID, and append to list
-    return "Successful"
+    for obj in graphIDs:
+        if obj['GID'] == GID:
+            dcr = createDCRgraph(graphIDs[0])
+            jsn = {'SID': graphIDs.__len__(), 'graph': dcr}
+            simIDs.append(jsn)
+            return "Successful" #TODO: Return executable events
+    return "Unknown GID"
+
+@app.get('/api/simulator/<int:SID>')
+def getSimulation(SID):
+    sim = getSim(SID)
+    if sim is not None:
+        return sim
+    return "Unknown SID"
+
+@app.post('/api/simulator/<int:SID>/executeEvent/<string:event>')
+def executeEvent(SID, event):
+    sim = getSim(SID)
+    if sim is not None:
+        dcr = sim['graph']
+    
+    return 'Test'
