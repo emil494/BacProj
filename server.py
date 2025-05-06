@@ -6,7 +6,7 @@ from flask import Flask, request
 import xml.etree.ElementTree as ET
 from pm4py.objects.dcr.hierarchical.obj import HierarchicalDcrGraph
 from simulatorInit import createDCRgraph                                       
-
+from simulatorInit import ExecuteEventOnGraph
 app = Flask(__name__)
 graphIDs = []
 simIDs = []
