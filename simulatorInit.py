@@ -85,6 +85,15 @@ def createDCRgraph(graph):
 
 def ExecuteEventOnGraph(dcr,event):
     semantics = DcrSemantics()
+    if not event in dcr.events:
+        if not event in dcr.labels:
+            return "Unknown event"
+        map = dcr.label_map
+        for (e, alias) in map.items():
+            if alias == event:
+                event = e
+                break
+
     semantics.execute(dcr,event)
     return dcr
 

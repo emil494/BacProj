@@ -5,23 +5,22 @@ import xmltodict, json
 from flask import Flask, request
 import xml.etree.ElementTree as ET
 from pm4py.objects.dcr.hierarchical.obj import HierarchicalDcrGraph
-from simulatorInit import createDCRgraph                                       
-from simulatorInit import ExecuteEventOnGraph
+from simulatorInit import createDCRgraph, ExecuteEventOnGraph
 app = Flask(__name__)
 graphIDs = []
 simIDs = []
 graphIDs.append(test)
 
-def getGraph(GID):
+def findGraph(GID):
     for obj in graphIDs:
         if obj['GID'] == GID:
             return obj
     return None
 
-def getSim(SID):
+def findSim(SID):
     for obj in simIDs:
-            if obj  ['SID'] == SID:
-                return obj
+        if obj['SID'] == SID:
+            return obj
     return None
             
 def replaceAllInstances(input, old, new):
@@ -47,7 +46,7 @@ def loadXML():
 
 @app.get('/api/graphs/<int:GID>')
 def getGraph(GID):
-    graph = getGraph(GID)
+    graph = findGraph(GID)
     if graph is not None:
         return graph
     return "Unknown GID"
@@ -58,26 +57,25 @@ def SimulateInit(GID):
     for obj in graphIDs:
         if obj['GID'] == GID:
             dcr = createDCRgraph(obj)
-            jsn = {'SID': graphIDs.__len__(), 'graph': dcr}
+            jsn = {'SID': simIDs.__len__(), 'graph': dcr}
             simIDs.append(jsn)
-            return "Successful" #TODO: Return executable events
+            return {'SID': jsn['SID'], 'graph': dcr.__repr__()} #TODO: Return executable events
     return "Unknown GID"
 
 @app.get('/api/simulator/<int:SID>')
 def getSimulation(SID):
-    sim = getSim(SID)
+    sim = findSim(SID)
     if sim is not None:
-        return sim
+        return {'SID': sim['SID'], 'graph': sim['graph'].__repr__()}
     return "Unknown SID"
 
 @app.post('/api/simulator/<int:SID>/executeEvent/<string:event>')
 def executeEvent(SID, event):
-    sim = getSim(SID)
+    sim = findSim(SID)
     if sim is not None:
         dcr = sim['graph']
-        if event in dcr.events:
-            executable = HierarchicalDcrGraph.execute(dcr, event)
-            return executable
-        else: 
-            return 'Unknown Event'
+        res = ExecuteEventOnGraph(dcr, event)
+        if not isinstance(res, str):
+            res = {'SID': SID, 'graph': res.__repr__()}
+        return res
     return 'Unknown SID'
