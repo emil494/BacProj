@@ -6,7 +6,7 @@ from flask import Flask, request
 import xml.etree.ElementTree as ET
 from pm4py.objects.dcr.obj import DcrGraph
 from simulatorInit import createDCRgraph                                       
-
+from simulatorInit import ExecuteEventOnGraph
 app = Flask(__name__)
 graphIDs = []
 simIDs = []
@@ -75,5 +75,6 @@ def executeEvent(SID, event):
     sim = getSim(SID)
     if sim is not None:
         dcr = sim['graph']
-    
+        Event_Executed_On_Graph = ExecuteEventOnGraph(dcr)
+        return "Here is the executed graph: \n",Event_Executed_On_Graph
     return 'Test'
