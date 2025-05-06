@@ -4,7 +4,7 @@ test = {'GID': 0, 'graph': {"dcrgraph": {"@title": "Aflevering 3", "@dataTypesSt
 import xmltodict, json
 from flask import Flask, request
 import xml.etree.ElementTree as ET
-from pm4py.objects.dcr.obj import DcrGraph
+from pm4py.objects.dcr.hierarchical.obj import HierarchicalDcrGraph
 from simulatorInit import createDCRgraph                                       
 
 app = Flask(__name__)
@@ -57,7 +57,7 @@ def getGraph(GID):
 def SimulateInit(GID):
     for obj in graphIDs:
         if obj['GID'] == GID:
-            dcr = createDCRgraph(graphIDs[0])
+            dcr = createDCRgraph(obj)
             jsn = {'SID': graphIDs.__len__(), 'graph': dcr}
             simIDs.append(jsn)
             return "Successful" #TODO: Return executable events
@@ -75,5 +75,9 @@ def executeEvent(SID, event):
     sim = getSim(SID)
     if sim is not None:
         dcr = sim['graph']
-    
-    return 'Test'
+        if event in dcr.events:
+            executable = HierarchicalDcrGraph.execute(dcr, event)
+            return executable
+        else: 
+            return 'Unknown Event'
+    return 'Unknown SID'
