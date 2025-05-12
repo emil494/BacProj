@@ -89,6 +89,7 @@ def ExecuteEventOnGraph(dcr,event):
         if not event in dcr.labels:
             return "Unknown event"
         map = dcr.label_map
+        #TODO: Discriminate between groups if 2+ events use the same label, else fail due to ambiguity
         for (e, alias) in map.items():
             if alias == event:
                 event = e

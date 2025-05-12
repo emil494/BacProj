@@ -9,6 +9,7 @@ from simulatorInit import createDCRgraph, ExecuteEventOnGraph
 app = Flask(__name__)
 graphIDs = []
 simIDs = []
+access = []
 graphIDs.append(test)
 
 def findGraph(GID):
@@ -22,6 +23,15 @@ def findSim(SID):
         if obj['SID'] == SID:
             return obj
     return None
+
+def findAccess(key, idx = False):
+    for i, obj in enumerate(access):
+        if obj['key'] == key:
+            if idx:
+                return [i, obj]
+            else:
+                return obj
+    return None
             
 def replaceAllInstances(input, old, new):
     if isinstance(input, dict):
@@ -31,29 +41,67 @@ def replaceAllInstances(input, old, new):
     elif input == old:
         return new
     return input
-        
 
-@app.post('/api/graphs/loadXML')
+#TODO: Better structured user data and log-in/access check
+def checkAccess(header, GID):
+    key = header['Authorization']
+    access = findAccess(key)
+    if access is None:
+        return False
+    if GID in access['GID']:
+        return True
+    
+    return False
+
+def checkLoggedIn(header):
+    if header['Authorization'] == "Basic Og==" or not ('Basic' in header['Authorization']):
+        return False
+    return True
+
+@app.post('/api/utility/xml2dcr')
 def loadXML():
     # TODO: Error handling
     xml = request.data
+    header = request.headers
+    if not checkLoggedIn(header):
+        return 'Not Logged In/ Invalid Authorization Type'
+
     dict = xmltodict.parse(xml)
     dict = replaceAllInstances(dict, 'null', None) # For easier python handling
-    jsn = {'GID': graphIDs.__len__(), 'graph': dict}
+    gid = graphIDs.__len__()
+    jsn = {'GID': gid, 'graph': dict}
     graphIDs.append(jsn)
-    print(jsn['graph'])
-    return jsn
+
+    key = header['Authorization']
+
+    if (entry := findAccess(key, idx = True)) is None:
+        jsn = {'GID': [gid], 'key': key}
+        access.append(jsn)
+    else:
+        gidList = entry[1]['GID']
+        gidList.append(gid)
+        access[entry[0]] = {'GID': gidList, 'key': key}
+
+    print(access)
+
+    return f'{gid}'
 
 @app.get('/api/graphs/<int:GID>')
 def getGraph(GID):
+    if not checkAccess(request.headers, GID):
+        return 'Access Denied'
+    
     graph = findGraph(GID)
     if graph is not None:
         return graph
     return "Unknown GID"
 
 # Creates a DCRGraph object of GID
-@app.post('/api/graphs/<int:GID>/createSimulator')
+@app.post('/api/graphs/<int:GID>/DCRsimulator')
 def SimulateInit(GID):
+    if not checkAccess(request.headers, GID):
+        return 'Access Denied'
+    
     for obj in graphIDs:
         if obj['GID'] == GID:
             dcr = createDCRgraph(obj)
@@ -62,15 +110,21 @@ def SimulateInit(GID):
             return {'SID': jsn['SID'], 'graph': dcr.__repr__()} #TODO: Return executable events
     return "Unknown GID"
 
-@app.get('/api/simulator/<int:SID>')
-def getSimulation(SID):
+@app.get('/api/graphs/<int:GID>/DCRsimulator/<int:SID>')
+def getSimulation(GID, SID):
+    if not checkAccess(request.headers, GID):
+        return 'Access Denied'
+    
     sim = findSim(SID)
     if sim is not None:
         return {'SID': sim['SID'], 'graph': sim['graph'].__repr__()}
     return "Unknown SID"
 
-@app.post('/api/simulator/<int:SID>/executeEvent/<string:event>')
-def executeEvent(SID, event):
+@app.post('/api/graphs/<int:GID>/DCRsimulator/<int:SID>/executeEvent/<string:event>')
+def executeEvent(GID, SID, event):
+    if not checkAccess(request.headers, GID):
+        return 'Access Denied'
+    
     sim = findSim(SID)
     if sim is not None:
         dcr = sim['graph']
