@@ -22,6 +22,15 @@ def findKey(jsn : dict, key : str):
         
     return None
 
+def isNesting(graph, nestings):
+    for elm in graph:
+        if '@type' in elm:
+            nestings.setdefault(elm['@id'],[])
+            for events in elm['event']:
+                nestings[elm['@id']].append(events['@id'])
+            isNesting(elm['event'],nestings)
+    return nestings
+
 def EventinList(event,eventlist):
     if eventlist is None:
                 return False
@@ -33,15 +42,22 @@ def EventinList(event,eventlist):
 
 def createDCRgraph(graph):
     jsn = graph['graph']
-    
-    dcr = HierarchicalDcrGraph()
+    nestings = {}
 
+    dcr = HierarchicalDcrGraph()
+    nestings = isNesting(findKey(jsn,"event"),nestings)
     rel = findKey(jsn, 'constraints')
     events = findKey(jsn, 'labelMapping')
     included = findKey(jsn, 'included')
     pending = findKey(jsn, 'pendingResponses')
-#    print("\n",rel.items())
+    
+    for (key,values) in nestings.items():
+            dcr.nestedgroups[key] = {values[i] for i in range(len(values))}
 
+    for group, NEvents in dcr.nestedgroups.items():
+        for e in NEvents:
+            dcr.nestedgroups_map[e] = group
+    
     # TODO: Add data to DcrGraph()
     for event in events:
         dcr.events.add(event['@eventId'])
