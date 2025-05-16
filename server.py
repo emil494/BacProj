@@ -21,13 +21,16 @@ def replaceAllInstances(input, old, new):
 
 @app.post('/api/utility/xml2dcr')
 def loadXML():
-    # TODO: Error handling
     xml = request.data
     header = request.headers
     if not dm.checkLoggedIn(header):
         return 'Not Logged In/ Invalid Authorization Type'
-
-    dict = xmltodict.parse(xml)
+    
+    try:
+        dict = xmltodict.parse(xml)
+    except:
+        return 'Misformated request data'
+    
     dict = replaceAllInstances(dict, 'null', None) # For easier python handling
     gid = dm.assignGid()
     jsn = {gid: {'SIDs': [], 'graph': dict}}
