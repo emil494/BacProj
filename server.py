@@ -68,7 +68,7 @@ def getGraphs():
         graphs = dm.access[auth]
         return graphs
     except:
-        return 'No simulations found'
+        return 'Failed'
 
 @app.delete('/api/graphs/<string:GID>')
 def deleteGraph(GID):
@@ -92,7 +92,7 @@ def SimulateInit(GID):
             dm.graphIDs[GID] = graph
             jsn = {sid: dcr}
             dm.simIDs.update(jsn)
-            return {sid: dcr.__repr__()} #TODO: Return executable events
+            return {sid: dcr.__repr__()}
     return "Unknown GID"
 
 @app.get('/api/graphs/<string:GID>/DCRsimulator/<string:SID>')
@@ -191,9 +191,7 @@ def executeTrace(GID, SID):
             jsn = json.loads(jsn)
             trace = jsn['trace']
             for e in trace:
-                print(f'Executing {e}')
                 ExecuteEventOnGraph(sim, e)
-                print(sim.marking.executed)
             return "Success"
         except:
             return 'Misformated request data'
