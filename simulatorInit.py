@@ -104,7 +104,7 @@ def ExecuteEventOnGraph(dcr,event):
     semantics = DcrSemantics()
     if not event in dcr.events:
         if not event in dcr.labels:
-            return "Unknown event"
+            return f"Unknown event {event}"
         map = dcr.label_map
         #TODO: Discriminate between groups if 2+ events use the same label, else fail due to ambiguity
         for (e, alias) in map.items():

@@ -185,9 +185,9 @@ def executeEvent(GID, SID, event):
     sim = dm.findSim(SID)
     if sim:
         res = ExecuteEventOnGraph(sim, event)
-        if not isinstance(res, str):
-            res = {SID: res.__repr__()}
-        return res
+        if not ("Unknown event" in res):
+            return "Success"
+        return res # Unknown event
     return 'Unknown SID'
 
 @app.put('/api/graphs/<string:GID>/DCRsimulator/<string:SID>/executeTrace')
@@ -203,7 +203,9 @@ def executeTrace(GID, SID):
             jsn = json.loads(jsn)
             trace = jsn['trace']
             for e in trace:
-                ExecuteEventOnGraph(sim, e)
+                res = ExecuteEventOnGraph(sim, e)
+                if "Unknown event" in res:
+                    return res
             return "Success"
         except:
             return 'Misformated request data'
