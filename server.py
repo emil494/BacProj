@@ -3,7 +3,7 @@ import xmltodict, json
 from flask import Flask, request
 import xml.etree.ElementTree as ET
 from pm4py.objects.dcr.hierarchical.obj import HierarchicalDcrGraph
-from simulatorInit import createDCRgraph, ExecuteEventOnGraph
+from simulatorInit import createDCRgraph, ExecuteEventOnGraph, GetAllConds
 from dataManager import dataManager
 
 app = Flask(__name__)
@@ -75,7 +75,7 @@ def deleteGraph(GID):
     if not dm.checkAccessGraph(request.headers, GID):
         return 'Access Denied'
     
-    dm.removeGraph(GID)
+    dm.removeGraph(GID,request.headers['Authorization'])
     return "Sucess"
 
 # Creates a DCRGraph object of GID
@@ -128,7 +128,7 @@ def getEvents(GID, SID):
     
     sim = dm.findSim(SID)
     if sim:
-        return list(sim.events)
+        return sim.label_map
     
     return 'Unknown SID'
 
@@ -196,5 +196,19 @@ def executeTrace(GID, SID):
         except:
             return 'Misformated request data'
     return 'Unknown SID'
+
+
+@app.get('/api/graphs/<string:GID>/sims/<string:SID>/relations')
+def getRelations(GID, SID):
+    if not dm.checkAccessSim(request.headers, GID, SID):
+        return 'Access Denied'
+    
+    sim = dm.findSim(SID)
+    print(sim)
+    if sim:
+        return GetAllConds(sim)
+    
+    return 'Unknown SID'
+
 
 # TODO: Structured tests

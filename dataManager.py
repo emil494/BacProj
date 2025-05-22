@@ -49,18 +49,14 @@ class dataManager():
         except:
             return None
 
-    def removeGraph(self, GID):
+    def removeGraph(self, GID, Auth):
         graph = self.__graphIDs.pop(GID)
         SIDs = graph['SIDs']
         for s in SIDs:
             self.__simIDs.pop(s)
-            
-        for key, vals in self.__access.items():
-            if GID in vals:
-                vals.remove(GID)
-                self.__access[key] = vals
-                break
-            
+        
+        self.__access[Auth].remove(GID)
+
         self.__reavailableGid.append(GID)
         return True
 
@@ -118,3 +114,4 @@ class dataManager():
             return self.__reavailableSid.pop()
         else:
             return str(len(self.__simIDs))
+        
