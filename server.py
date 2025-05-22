@@ -95,7 +95,7 @@ def SimulateInit(GID):
             return {sid: dcr.__repr__()}
     return "Unknown GID"
 
-@app.get('/api/graphs/<string:GID>/DCRsimulator/<string:SID>')
+@app.get('/api/graphs/<string:GID>/sims/<string:SID>')
 def getSimulation(GID, SID):
     if not dm.checkAccessSim(request.headers, GID, SID):
         return 'Access Denied'
@@ -129,6 +129,18 @@ def getEvents(GID, SID):
     sim = dm.findSim(SID)
     if sim:
         return sim.label_map
+    
+    return 'Unknown SID'
+
+@app.get('/api/graphs/<string:GID>/sims/<string:SID>/relations')
+def getRelations(GID, SID):
+    if not dm.checkAccessSim(request.headers, GID, SID):
+        return 'Access Denied'
+    
+    sim = dm.findSim(SID)
+    print(sim)
+    if sim:
+        return GetAllConds(sim)
     
     return 'Unknown SID'
 
@@ -198,17 +210,7 @@ def executeTrace(GID, SID):
     return 'Unknown SID'
 
 
-@app.get('/api/graphs/<string:GID>/sims/<string:SID>/relations')
-def getRelations(GID, SID):
-    if not dm.checkAccessSim(request.headers, GID, SID):
-        return 'Access Denied'
-    
-    sim = dm.findSim(SID)
-    print(sim)
-    if sim:
-        return GetAllConds(sim)
-    
-    return 'Unknown SID'
+
 
 
 # TODO: Structured tests
