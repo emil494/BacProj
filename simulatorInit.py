@@ -117,12 +117,22 @@ def ExecuteEventOnGraph(dcr,event):
 
 def GetAllConds(SID):
     allConds = {}
-    for key,val in SID.conditions.items():
-        allConds.setdefault("Conditions",[]).append({key:str(val)})
-    for key,val in SID.responses.items():
-        allConds.setdefault("Responses",[]).append({key:str(val)})
-    for key,val in SID.includes.items():
-        allConds.setdefault("Includes",[]).append({key:str(val)})
-    for key,val in SID.excludes.items():
-        allConds.setdefault("Excludes",[]).append({key:str(val)})
+
+    allConds.update({"conditions": SID.conditions})
+    for key,val in allConds["conditions"].items():
+        allConds["conditions"].update({key:next(iter(val))})
+
+    allConds.update({"responses": SID.responses})
+    for key,val in allConds["responses"].items():
+        allConds["responses"].update({key:next(iter(val))})
+    
+    allConds.update({"includes": SID.includes})
+    for key,val in allConds["includes"].items():
+        allConds["includes"].update({key:next(iter(val))})
+    
+    allConds.update({"excludes": SID.excludes})
+    for key,val in allConds["excludes"].items():
+        allConds["excludes"].update({key:next(iter(val))})
+
+    print(allConds)
     return allConds
