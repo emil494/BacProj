@@ -35,9 +35,12 @@ def isNesting(graph, nestings):
 def EventinList(event,eventlist):
     if eventlist is None:
                 return False
-    for object in eventlist['event']:
+    if len(eventlist['event']) > 1:
+        for object in eventlist['event']:
             if event == object['@id']:
                 return True
+    if {"@id":event} == eventlist['event']:
+        return True
     return False
 
 
@@ -46,7 +49,7 @@ def createDCRgraph(graph):
     nestings = {}
 
     dcr = HierarchicalDcrGraph()
-    nestings = isNesting(findKey(jsn,"event"),nestings)
+    nestings = isNesting(findKey(jsn,"events"),nestings)
     rel = findKey(jsn, 'constraints')
     events = findKey(jsn, 'labelMapping')
     included = findKey(jsn, 'included')
@@ -102,18 +105,21 @@ def createDCRgraph(graph):
 
 def ExecuteEventOnGraph(dcr,event):
     semantics = DcrSemantics()
+    print((dcr.marking.pending))
+    if event not in list(dcr.marking.pending):
+        return dcr
     if not event in dcr.events:
         if not event in dcr.labels:
-            return "Unknown event"
-        map = dcr.label_map
-        #TODO: Discriminate between groups if 2+ events use the same label, else fail due to ambiguity
+            return dcr
+        ''' map = dcr.label_map
+        TODO: Discriminate between groups if 2+ events use the same label, else fail due to ambiguity
         for (e, alias) in map.items():
             if alias == event:
                 event = e
-                break
+                break'''
 
-    semantics.execute(dcr,event)
-    return dcr
+    
+    return semantics.execute(dcr,event)
 
 def GetAllConds(SID):
     allConds = {}
