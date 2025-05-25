@@ -63,7 +63,6 @@ def createDCRgraph(graph):
         for e in NEvents:
             dcr.nestedgroups_map[e] = group
     
-    # TODO: Add data to DcrGraph()
     for event in events:
         dcr.events.add(event['@eventId'])
         dcr.labels.add(event['@labelId'])
@@ -72,6 +71,7 @@ def createDCRgraph(graph):
             dcr.marking.included.add(event['@eventId'])
         if EventinList(event['@eventId'],pending):
             dcr.marking.pending.add(event['@eventId'])
+
     for value in rel.values():
         if value is not None:
             for (cond, targets) in value.items():
@@ -88,13 +88,11 @@ def createDCRgraph(graph):
                                 dcr.excludes[target['@sourceId']].add(target['@targetId'])
                             else:
                                 dcr.excludes[target['@sourceId']]={target['@targetId']}
-                            
                         if cond == 'include':
                             if target['@sourceId'] in dcr.includes:
                                 dcr.includes[target['@sourceId']].add(target['@targetId'])
                             else:
                                 dcr.includes[target['@sourceId']]={target['@targetId']}
-                            
                         if cond == 'milestone':
                             if '@link' not in target.keys():
                                 if target['@sourceId'] in dcr.milestones:
@@ -108,23 +106,22 @@ def createDCRgraph(graph):
                                 dcr.conditions[target['@targetId']]={target['@sourceId']}
                 if isinstance(targets, dict):
                     if cond == 'response':
-                        dcr.responses[targets['@sourceId']]=[targets['@targetId']]
+                        dcr.responses[targets['@sourceId']]={targets['@targetId']}
                     if cond == 'exclude':
-                        dcr.excludes[targets['@sourceId']]=[targets['@targetId']]
+                        dcr.excludes[targets['@sourceId']]={targets['@targetId']}
                     if cond == 'include':
-                        dcr.includes[targets['@sourceId']]=[targets['@targetId']]
+                        dcr.includes[targets['@sourceId']]={targets['@targetId']}
                     if cond == 'milestone':
                         if '@link' not in target.keys():
-                            dcr.milestones[targets['@sourceId']]=[targets['@targetId']]
+                            dcr.milestones[targets['@sourceId']]={targets['@targetId']}
                     if cond == 'condition':
-                        dcr.conditions[targets['@targetId']]=[targets['@sourceId']]
+                        dcr.conditions[targets['@targetId']]={targets['@sourceId']}
 
 
     return dcr
 
 def ExecuteEventOnGraph(dcr,event):
     semantics = DcrSemantics()
-
     if event in semantics.enabled(dcr):
         print(semantics.enabled(dcr))
         return semantics.execute(dcr,event)
@@ -137,16 +134,10 @@ def GetAllConds(SID):
                 "Excludes":[]}
     for key,val in SID.conditions.items():
         allConds["Conditions"].extend([{key:str(val)}])
-        '''allConds.setdefault("Conditions",[]).append({key:str(val)})'''
     for key,val in SID.responses.items():
         allConds["Responses"].extend([{key:str(val)}])
-        '''allConds.setdefault("Responses",[]).append({key:str(val)})'''
     for key,val in SID.includes.items():
         allConds["Includes"].extend([{key:str(val)}])
-        '''allConds.setdefault("Includes",[]).append({key:str(val)})'''
     for key,val in SID.excludes.items():
-        print(key,val)
-        print(SID.excludes.items())
         allConds["Excludes"].extend([{key:str(val)}])
-        '''allConds.setdefault("Excludes",[]).append({key:str(val)})'''
     return allConds
