@@ -51,6 +51,7 @@ def createDCRgraph(graph):
     dcr = HierarchicalDcrGraph()
     nestings = isNesting(findKey(jsn,"events"),nestings)
     rel = findKey(jsn, 'constraints')
+    print(rel)
     events = findKey(jsn, 'labelMapping')
     included = findKey(jsn, 'included')
     pending = findKey(jsn, 'pendingResponses')
@@ -71,64 +72,82 @@ def createDCRgraph(graph):
             dcr.marking.included.add(event['@eventId'])
         if EventinList(event['@eventId'],pending):
             dcr.marking.pending.add(event['@eventId'])
-    for value in rel.values():
-        if value is not None:
-            for (cond, targets) in value.items():
+        for (cond, targets) in rel.items().values():
+            if targets is not None:
                 if isinstance(targets, list):
                     for target in targets:
                         if cond == 'response':
-                            dcr.responses[target['@sourceId']]={target['@targetId']}
+                            if dcr.responses[target['@sourceId']] is not None:
+                                dcr.responses[target['@sourceId']]+=[target['@targetId']]
+                            else:
+                                dcr.responses[target['@sourceId']]=[target['@targetId']]
                         if cond == 'exclude':
-                            dcr.excludes[target['@sourceId']]={target['@targetId']}
+                            print(targets)
+                            if dcr.excludes[target['@sourceId']] is not None:
+                                dcr.excludes[target['@sourceId']]+=[target['@targetId']]
+                            else:
+                                dcr.excludes[target['@sourceId']]=[target['@targetId']]
+                            
                         if cond == 'include':
-                            dcr.includes[target['@sourceId']]={target['@targetId']}
+                            if dcr.includes[target['@sourceId']] is not None:
+                                dcr.includes[target['@sourceId']]+=[target['@targetId']]
+                            else:
+                                dcr.includes[target['@sourceId']]=[target['@targetId']]
+                            
                         if cond == 'milestone':
                             if '@link' not in target.keys():
-                                dcr.milestones[target['@sourceId']]={target['@targetId']}
+                                if dcr.milestones[target['@sourceId']] is not None:
+                                    dcr.milestones[target['@sourceId']]+=[target['@targetId']]
+                                else:
+                                    dcr.milestones[target['@sourceId']]=[target['@targetId']]
                         if cond == 'condition':
-                            dcr.conditions[target['@targetId']]={target['@sourceId']}
+                            print(target['@targetId'])
+                            print(target['@sourceId'])
+                            if dcr.conditions[target['@targetId']] is not None:
+                                dcr.conditions[target['@targetId']]+=[target['@sourceId']]
+                            else:
+                                dcr.conditions[target['@targetId']]=[target['@sourceId']]
                 if isinstance(targets, dict):
                     if cond == 'response':
-                        dcr.responses[targets['@sourceId']]={targets['@targetId']}
+                        dcr.responses[targets['@sourceId']]=[targets['@targetId']]
                     if cond == 'exclude':
-                        dcr.excludes[targets['@sourceId']]={targets['@targetId']}
+                        dcr.excludes[targets['@sourceId']]=[targets['@targetId']]
                     if cond == 'include':
-                        dcr.includes[targets['@sourceId']]={targets['@targetId']}
+                        dcr.includes[targets['@sourceId']]=[targets['@targetId']]
                     if cond == 'milestone':
                         if '@link' not in target.keys():
-                            dcr.milestones[targets['@sourceId']]={targets['@targetId']}
+                            dcr.milestones[targets['@sourceId']]=[targets['@targetId']]
                     if cond == 'condition':
-                        dcr.conditions[targets['@targetId']]={targets['@sourceId']}
-                    # TODO : add spawn, ing?
+                        dcr.conditions[targets['@targetId']]=[targets['@sourceId']]
+
 
     return dcr
 
 def ExecuteEventOnGraph(dcr,event):
     semantics = DcrSemantics()
-    print((dcr.marking.pending))
-    if event not in list(dcr.marking.pending):
-        return dcr
-    if not event in dcr.events:
-        if not event in dcr.labels:
-            return dcr
-        ''' map = dcr.label_map
-        TODO: Discriminate between groups if 2+ events use the same label, else fail due to ambiguity
-        for (e, alias) in map.items():
-            if alias == event:
-                event = e
-                break'''
 
-    
-    return semantics.execute(dcr,event)
+    if event in semantics.enabled(dcr):
+        print(semantics.enabled(dcr))
+        return semantics.execute(dcr,event)
+    return dcr
 
 def GetAllConds(SID):
-    allConds = {}
+    allConds = {"Conditions": [],
+                "Responses":[],
+                "Includes":[],
+                "Excludes":[]}
     for key,val in SID.conditions.items():
-        allConds.setdefault("Conditions",[]).append({key:str(val)})
+        allConds["Conditions"].extend([{key:str(val)}])
+        '''allConds.setdefault("Conditions",[]).append({key:str(val)})'''
     for key,val in SID.responses.items():
-        allConds.setdefault("Responses",[]).append({key:str(val)})
+        allConds["Responses"].extend([{key:str(val)}])
+        '''allConds.setdefault("Responses",[]).append({key:str(val)})'''
     for key,val in SID.includes.items():
-        allConds.setdefault("Includes",[]).append({key:str(val)})
+        allConds["Includes"].extend([{key:str(val)}])
+        '''allConds.setdefault("Includes",[]).append({key:str(val)})'''
     for key,val in SID.excludes.items():
-        allConds.setdefault("Excludes",[]).append({key:str(val)})
+        print(key,val)
+        print(SID.excludes.items())
+        allConds["Excludes"].extend([{key:str(val)}])
+        '''allConds.setdefault("Excludes",[]).append({key:str(val)})'''
     return allConds

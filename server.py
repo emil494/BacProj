@@ -185,8 +185,6 @@ def executeEvent(GID, SID, event):
     sim = dm.findSim(SID)
     if sim:
         res = ExecuteEventOnGraph(sim, event)
-        if res == sim:
-            return jsonify({"Status":'Not pending event'}),400
         if not isinstance(res, str):
             res = {SID: res.__repr__()}
         return res, 200
