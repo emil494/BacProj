@@ -1,7 +1,68 @@
-from ..simulatorInit import createDCRgraph, ExecuteEventOnGraph, GetAllConds
-from ..server import replaceAllInstances
+import sys
+import os
+
+
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, PROJECT_ROOT)
+
+from pm4py.objects.dcr.hierarchical.obj import HierarchicalDcrGraph
+from pm4py.objects.dcr.semantics import DcrSemantics
+from simulatorInit import createDCRgraph, ExecuteEventOnGraph, GetAllConds
+from server import replaceAllInstances
 import unittest
+'''from bs4 import BeautifulSoup'''
+import xmltodict, json
+
+
 
 class SimulatorTest(unittest.TestCase):
   def setUp(self):
-    self.
+      with open('XML/test3.xml', 'r') as f: 
+          self.xml = f.read()
+      self.xml2dict = xmltodict.parse(self.xml)
+      self.dict = {"graph" :replaceAllInstances(self.xml2dict, 'null', None)}
+      '''self.bs_data = BeautifulSoup(self.xml, "xml")'''
+      self.graph = HierarchicalDcrGraph()
+      self.events = ("A1","A2","A3")
+      for event in self.events:
+        self.graph.events.add(event)
+        self.graph.labels.add(event)
+        self.graph.label_map[event] = event
+        self.graph.marking.included.add(event)
+      self.graph.marking.pending.add("A3")
+      self.graph.excludes["A3"]={"A2"}
+      self.graph.excludes["A2"]={"A3","A2","A1"}
+      self.graph.includes["A1"]={"A2"}
+      self.graph.conditions["A1"]={"A3"}
+      self.graph.conditions["A2"]={"A3"}
+      self.createGraph = createDCRgraph(self.dict)
+
+
+
+    
+  def test_Markings(self):
+    self.assertEqual(self.createGraph.marking.included,self.graph.marking.included)
+    self.assertEqual(self.createGraph.marking.pending,self.graph.marking.pending)
+    
+  def test_Events(self):
+    self.assertEqual(self.createGraph.events,self.graph.events)
+
+  def test_Includes(self):
+    self.assertEqual(self.createGraph.includes,self.graph.includes)
+
+  def test_Excludes(self):
+    self.assertEqual(self.createGraph.excludes,self.graph.excludes)
+  
+
+  def test_Responds(self):
+    self.assertEqual(self.createGraph.responses,self.graph.responses)
+
+  def test_Conditions(self):
+    self.assertEqual(self.createGraph.conditions,self.graph.conditions)
+  
+  def test_Label(self):
+    self.assertEqual(self.createGraph.label_map,self.graph.label_map)
+
+if __name__ == '__main__':
+  unittest.main()
+
