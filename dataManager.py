@@ -81,7 +81,10 @@ class dataManager():
 
     # Access check for graph data
     def checkAccessGraph(self, header, GID):
-        key = header['Authorization']
+        try:
+            key = header['Authorization']
+        except:
+            return False
         access = self.findAccess(key)
         if access is None:
             return False
@@ -99,9 +102,13 @@ class dataManager():
         return False
 
     def checkLoggedIn(self, header):
-        if header['Authorization'] == "Basic Og==" or not ('Basic' in header['Authorization']):
+        try: 
+            if header['Authorization'] == "Basic Og==" or not ('Basic' in header['Authorization']):
+                return False
+            return True 
+        except:
             return False
-        return True
+
 
     def assignGid(self):
         if self.__reavailableGid:
