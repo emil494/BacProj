@@ -83,7 +83,6 @@ def createDCRgraph(graph):
                             else:
                                 dcr.responses[target['@sourceId']]={target['@targetId']}
                         if cond == 'exclude':
-                            print(targets)
                             if target['@sourceId'] in dcr.excludes:
                                 dcr.excludes[target['@sourceId']].add(target['@targetId'])
                             else:
@@ -128,16 +127,13 @@ def ExecuteEventOnGraph(dcr,event):
     return dcr
 
 def GetAllConds(SID):
-    allConds = {"Conditions": [],
-                "Responses":[],
-                "Includes":[],
-                "Excludes":[]}
-    for key,val in SID.conditions.items():
-        allConds["Conditions"].extend([{key:str(val)}])
-    for key,val in SID.responses.items():
-        allConds["Responses"].extend([{key:str(val)}])
-    for key,val in SID.includes.items():
-        allConds["Includes"].extend([{key:str(val)}])
-    for key,val in SID.excludes.items():
-        allConds["Excludes"].extend([{key:str(val)}])
+    allConst = {"Conditions": SID.conditions,
+                "Responses" : SID.responses,
+                "Includes": SID.includes,
+                "Excludes":SID.excludes}
+    allConds= {}
+    for key,val in allConst.items():
+        allConds[key] = []
+        for cKey,cVal in val.items():
+            allConds[key].extend([{cKey:str(cVal)}])
     return allConds
