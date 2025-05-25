@@ -72,53 +72,53 @@ def createDCRgraph(graph):
             dcr.marking.included.add(event['@eventId'])
         if EventinList(event['@eventId'],pending):
             dcr.marking.pending.add(event['@eventId'])
-        for (cond, targets) in rel.items().values():
-            if targets is not None:
-                if isinstance(targets, list):
+        for value in rel.values():
+            if value is not None:
+                for (cond, targets) in value.items():
                     for target in targets:
                         if cond == 'response':
-                            if dcr.responses[target['@sourceId']] is not None:
+                            if dcr.responses[target['@sourceId']] in dcr.responses:
                                 dcr.responses[target['@sourceId']]+=[target['@targetId']]
                             else:
                                 dcr.responses[target['@sourceId']]=[target['@targetId']]
                         if cond == 'exclude':
                             print(targets)
-                            if dcr.excludes[target['@sourceId']] is not None:
+                            if dcr.excludes[target['@sourceId']] in dcr.excludes:
                                 dcr.excludes[target['@sourceId']]+=[target['@targetId']]
                             else:
                                 dcr.excludes[target['@sourceId']]=[target['@targetId']]
                             
                         if cond == 'include':
-                            if dcr.includes[target['@sourceId']] is not None:
+                            if dcr.includes[target['@sourceId']] in dcr.includes:
                                 dcr.includes[target['@sourceId']]+=[target['@targetId']]
                             else:
                                 dcr.includes[target['@sourceId']]=[target['@targetId']]
                             
                         if cond == 'milestone':
                             if '@link' not in target.keys():
-                                if dcr.milestones[target['@sourceId']] is not None:
+                                if dcr.milestones[target['@sourceId']] in dcr.milestones:
                                     dcr.milestones[target['@sourceId']]+=[target['@targetId']]
                                 else:
                                     dcr.milestones[target['@sourceId']]=[target['@targetId']]
                         if cond == 'condition':
                             print(target['@targetId'])
                             print(target['@sourceId'])
-                            if dcr.conditions[target['@targetId']] is not None:
+                            if dcr.conditions[target['@targetId']] in dcr.conditions:
                                 dcr.conditions[target['@targetId']]+=[target['@sourceId']]
                             else:
                                 dcr.conditions[target['@targetId']]=[target['@sourceId']]
-                if isinstance(targets, dict):
-                    if cond == 'response':
-                        dcr.responses[targets['@sourceId']]=[targets['@targetId']]
-                    if cond == 'exclude':
-                        dcr.excludes[targets['@sourceId']]=[targets['@targetId']]
-                    if cond == 'include':
-                        dcr.includes[targets['@sourceId']]=[targets['@targetId']]
-                    if cond == 'milestone':
-                        if '@link' not in target.keys():
-                            dcr.milestones[targets['@sourceId']]=[targets['@targetId']]
-                    if cond == 'condition':
-                        dcr.conditions[targets['@targetId']]=[targets['@sourceId']]
+                    if isinstance(targets, dict):
+                        if cond == 'response':
+                            dcr.responses[targets['@sourceId']]=[targets['@targetId']]
+                        if cond == 'exclude':
+                            dcr.excludes[targets['@sourceId']]=[targets['@targetId']]
+                        if cond == 'include':
+                            dcr.includes[targets['@sourceId']]=[targets['@targetId']]
+                        if cond == 'milestone':
+                            if '@link' not in target.keys():
+                                dcr.milestones[targets['@sourceId']]=[targets['@targetId']]
+                        if cond == 'condition':
+                            dcr.conditions[targets['@targetId']]=[targets['@sourceId']]
 
 
     return dcr
