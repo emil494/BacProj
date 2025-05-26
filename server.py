@@ -1,3 +1,9 @@
+import sys
+import os
+
+
+PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))  # Set PROJECT_ROOT to the current directory (BacProj)
+sys.path.insert(0, PROJECT_ROOT)
 
 import xmltodict, json
 from flask import Flask, request, jsonify

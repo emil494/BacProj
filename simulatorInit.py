@@ -111,7 +111,7 @@ def createDCRgraph(graph):
                         dcr.includes[targets['@sourceId']]={targets['@targetId']}
                     if cond == 'milestone':
                         if '@link' not in target.keys():
-                            dcr.milestones[targets['@sourceId']]={targets['@targetId']}
+                            dcr.milestones[targets['@targetId']]={targets['@sourceId']}
                     if cond == 'condition':
                         dcr.conditions[targets['@targetId']]={targets['@sourceId']}
 
@@ -120,6 +120,7 @@ def createDCRgraph(graph):
 
 def ExecuteEventOnGraph(dcr,event):
     semantics = ExtendedSemantics()
+    print(semantics.enabled(dcr))
     if event in semantics.enabled(dcr):
         return semantics.execute(dcr,event)
     return dcr
