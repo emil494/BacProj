@@ -51,7 +51,6 @@ def createDCRgraph(graph):
     dcr = HierarchicalDcrGraph()
     nestings = isNesting(findKey(jsn,"events"),nestings)
     rel = findKey(jsn, 'constraints')
-    print(rel)
     events = findKey(jsn, 'labelMapping')
     included = findKey(jsn, 'included')
     pending = findKey(jsn, 'pendingResponses')
@@ -122,7 +121,6 @@ def createDCRgraph(graph):
 def ExecuteEventOnGraph(dcr,event):
     semantics = DcrSemantics()
     if event in semantics.enabled(dcr):
-        print(semantics.enabled(dcr))
         return semantics.execute(dcr,event)
     return None
 

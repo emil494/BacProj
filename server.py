@@ -44,7 +44,6 @@ def loadXML():
     else:
         gidList.append(gid)
         dm.access[f'{auth}'] = gidList
-    '''print(dm.access)'''
 
     return gid,201
 
