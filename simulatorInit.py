@@ -124,7 +124,7 @@ def ExecuteEventOnGraph(dcr,event):
     if event in semantics.enabled(dcr):
         print(semantics.enabled(dcr))
         return semantics.execute(dcr,event)
-    return dcr
+    return None
 
 def GetAllConds(SID):
     allConst = {"Conditions": SID.conditions,

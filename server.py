@@ -76,7 +76,7 @@ def deleteGraph(GID):
         return jsonify({"Status":'Access Denied'}),403
     
     dm.removeGraph(GID,request.headers['Authorization'])
-    return jsonify({"Status":"Sucess"}),204
+    return jsonify({"Status":"Success"}),200
 
 # Creates a DCRGraph object of GID
 @app.post('/api/graphs/<string:GID>/DCRsimulator')
@@ -92,7 +92,7 @@ def SimulateInit(GID):
             dm.graphIDs[GID] = graph
             jsn = {sid: dcr}
             dm.simIDs.update(jsn)
-            return {sid: dcr.__repr__()},201
+            return sid,201
     return jsonify({"Status":"Unknown GID"}),404
 
 @app.get('/api/graphs/<string:GID>/sims/<string:SID>')
@@ -119,7 +119,7 @@ def deleteSim(GID, SID):
         return jsonify({"Status":'Access Denied'}),403
     
     dm.removeSim(GID, SID)
-    return jsonify({"Status":"Sucess"}),204
+    return jsonify({"Status":"Success"}),200
 
 @app.get('/api/graphs/<string:GID>/sims/<string:SID>/events')
 def getEvents(GID, SID):
@@ -185,9 +185,9 @@ def executeEvent(GID, SID, event):
     sim = dm.findSim(SID)
     if sim:
         res = ExecuteEventOnGraph(sim, event)
-        if not isinstance(res, str):
-            res = {SID: res.__repr__()}
-        return res, 200
+        if res is None:
+            return jsonify({"Status":{"Unsuccessful": [f"{event}"], "Successful" : []}}), 409
+        return jsonify({"Status":'Success'}), 200
     return jsonify({"Status":'Unknown SID'}),404
 
 @app.put('/api/graphs/<string:GID>/DCRsimulator/<string:SID>/executeTrace')
@@ -198,19 +198,18 @@ def executeTrace(GID, SID):
     sim = dm.findSim(SID)
     if sim:
         jsn = request.data
-
+        failed = []
         try: 
+            print('will it?')
             jsn = json.loads(jsn)
             trace = jsn['trace']
             for e in trace:
-                ExecuteEventOnGraph(sim, e)
+                if ExecuteEventOnGraph(sim, e) is None:
+                    failed.append(e)
+                print('yay')
+            if len(failed) > 0:
+                return jsonify({"Status":{"Unsuccessful": failed, "Successful" : list(set(trace).difference(failed))}}), 409
             return jsonify({"Status":"Success"}), 200
         except:
             return jsonify({"Status":'Misformated request data'}),400
     return jsonify({"Status":'Unknown SID'}),404
-
-
-
-
-
-# TODO: Structured tests
