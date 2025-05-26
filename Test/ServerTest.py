@@ -226,6 +226,19 @@ import unittest
 import requests as r
 import json
 
+#TODO: Setup functions
+
+def access_setup(self, adr, method, ret = False):
+    resp = r.request('http://127.0.0.1:5000/' + adr, method=method)
+    code = resp.status_code
+    msg = resp.json()
+    self.assertEqual(code, 403)
+    self.assertEqual(msg['Status'], 'Access Denied')
+    if ret:
+        return code, msg
+# def sim_setup():
+    
+
 class TestLoadXML(unittest.TestCase):
     def test_not_logged_in(self):
         resp = r.post('http://127.0.0.1:5000/api/utility/xml2dcr', data=testData)
@@ -251,13 +264,8 @@ class TestLoadXML(unittest.TestCase):
 
 
 class TestGetGraph(unittest.TestCase):
-
     def test_access(self):
-        resp = r.get('http://127.0.0.1:5000/api/graphs/1', auth=('test', '12'))
-        code = resp.status_code
-        msg = resp.json()
-        self.assertEqual(code, 403)
-        self.assertEqual(msg['Status'], 'Access Denied')
+        access_setup(self, 'api/graphs/1', 'get')
 
     def test_success(self):
         setup = r.post('http://127.0.0.1:5000/api/utility/xml2dcr', auth=('test', '123'), data=testData)
@@ -273,9 +281,7 @@ class TestGetGraph(unittest.TestCase):
 class TestGetGraphs(unittest.TestCase):
 
     def test_access(self):
-        resp = r.get('http://127.0.0.1:5000/api/graphs')
-        code = resp.status_code
-        msg = resp.json()
+        code, msg = access_setup(self, 'api/graphs', 'get', ret=True)
         self.assertEqual(code, 401)
         self.assertEqual(msg['Status'], 'Not Logged In/ Invalid Authorization Type')
     
@@ -300,11 +306,7 @@ class TestGetGraphs(unittest.TestCase):
 
 class TestDeleteGraph(unittest.TestCase):
     def test_access(self):
-        resp = r.delete('http://127.0.0.1:5000/api/graphs/0')
-        code = resp.status_code
-        msg = resp.json()
-        self.assertEqual(code, 403)
-        self.assertEqual(msg['Status'], 'Access Denied')
+        access_setup(self, 'api/graphs/0', 'delete')
 
     def test_success(self):
         setup = r.post('http://127.0.0.1:5000/api/utility/xml2dcr', auth=('test', '123'), data=testData)
@@ -326,11 +328,7 @@ class TestDeleteGraph(unittest.TestCase):
 
 class TestDCRsimulator(unittest.TestCase):
     def test_access(self):
-        resp = r.post('http://127.0.0.1:5000/api/graphs/0/DCRsimulator')
-        code = resp.status_code
-        msg = resp.json()
-        self.assertEqual(code, 403)
-        self.assertEqual(msg['Status'], 'Access Denied')
+        access_setup(self, 'api/graphs/0/DCRsimulator', 'post')
     
     def test_success(self):
         setup = r.post('http://127.0.0.1:5000/api/utility/xml2dcr', auth=('test', '123'), data=testData)
@@ -345,11 +343,7 @@ class TestDCRsimulator(unittest.TestCase):
 
 class TestGetSim(unittest.TestCase):
     def test_access(self):
-        resp = r.get('http://127.0.0.1:5000/api/graphs/0/sims/100')
-        code = resp.status_code
-        msg = resp.json()
-        self.assertEqual(code, 403)
-        self.assertEqual(msg['Status'], 'Access Denied')
+        access_setup(self, 'api/graphs/0/sims/100', 'get')
 
     def test_success(self):
         setup = r.post('http://127.0.0.1:5000/api/utility/xml2dcr', auth=('test', '123'), data=testData)
@@ -364,11 +358,7 @@ class TestGetSim(unittest.TestCase):
 
 class TestGetSims(unittest.TestCase):
     def test_access(self):
-        resp = r.get('http://127.0.0.1:5000/api/graphs/0/sims')
-        code = resp.status_code
-        msg = resp.json()
-        self.assertEqual(code, 403)
-        self.assertEqual(msg['Status'], 'Access Denied')
+        access_setup(self, 'api/graphs/0/sims', 'get')
 
     def test_success(self):
         setup = r.post('http://127.0.0.1:5000/api/utility/xml2dcr', auth=('test', '123'), data=testData)
@@ -384,11 +374,7 @@ class TestGetSims(unittest.TestCase):
 
 class TestDeleteSim(unittest.TestCase):
     def test_access(self):
-        resp = r.delete('http://127.0.0.1:5000/api/graphs/0/sims/100')
-        code = resp.status_code
-        msg = resp.json()
-        self.assertEqual(code, 403)
-        self.assertEqual(msg['Status'], 'Access Denied')        
+        access_setup(self, 'api/graphs/0/sims/100', 'delete')        
 
     def test_success(self):
         setup = r.post('http://127.0.0.1:5000/api/utility/xml2dcr', auth=('test', '123'), data=testData)
@@ -413,11 +399,7 @@ class TestDeleteSim(unittest.TestCase):
 
 class TestGetEvents(unittest.TestCase):
     def test_access(self):
-        resp = r.get('http://127.0.0.1:5000/api/graphs/0/sims/100/events')
-        code = resp.status_code
-        msg = resp.json()
-        self.assertEqual(code, 403)
-        self.assertEqual(msg['Status'], 'Access Denied')     
+        access_setup(self, 'api/graphs/0/sims/100/events', 'get')     
 
     def test_success(self):
         setup = r.post('http://127.0.0.1:5000/api/utility/xml2dcr', auth=('test', '123'), data=testData)
@@ -434,11 +416,7 @@ class TestGetEvents(unittest.TestCase):
 
 class TestGetRelations(unittest.TestCase):
     def test_access(self):
-        resp = r.get('http://127.0.0.1:5000/api/graphs/0/sims/100/relations')
-        code = resp.status_code
-        msg = resp.json()
-        self.assertEqual(code, 403)
-        self.assertEqual(msg['Status'], 'Access Denied')     
+        access_setup(self, 'api/graphs/0/sims/100/relations', 'get')     
 
     def test_success(self):
         setup = r.post('http://127.0.0.1:5000/api/utility/xml2dcr', auth=('test', '123'), data=testData)
@@ -455,11 +433,7 @@ class TestGetRelations(unittest.TestCase):
 
 class TestGetIncluded(unittest.TestCase):
     def test_access(self):
-        resp = r.get('http://127.0.0.1:5000/api/graphs/0/sims/100/included')
-        code = resp.status_code
-        msg = resp.json()
-        self.assertEqual(code, 403)
-        self.assertEqual(msg['Status'], 'Access Denied')     
+        access_setup(self, 'api/graphs/0/sims/100/included', 'get')     
 
     def test_success(self):
         setup = r.post('http://127.0.0.1:5000/api/utility/xml2dcr', auth=('test', '123'), data=testData)
@@ -477,11 +451,7 @@ class TestGetIncluded(unittest.TestCase):
 
 class TestGetPending(unittest.TestCase):
     def test_access(self):
-        resp = r.get('http://127.0.0.1:5000/api/graphs/0/sims/100/pending')
-        code = resp.status_code
-        msg = resp.json()
-        self.assertEqual(code, 403)
-        self.assertEqual(msg['Status'], 'Access Denied')     
+        access_setup(self, 'api/graphs/0/sims/100/pending', 'get')     
 
     def test_success(self):
         setup = r.post('http://127.0.0.1:5000/api/utility/xml2dcr', auth=('test', '123'), data=testData)
@@ -500,11 +470,7 @@ class TestGetPending(unittest.TestCase):
 
 class TestGetExecuted(unittest.TestCase):
     def test_access(self):
-        resp = r.get('http://127.0.0.1:5000/api/graphs/0/sims/100/executed')
-        code = resp.status_code
-        msg = resp.json()
-        self.assertEqual(code, 403)
-        self.assertEqual(msg['Status'], 'Access Denied')     
+        access_setup(self, 'api/graphs/0/sims/100/executed', 'get')     
 
     def test_success(self):
         setup = r.post('http://127.0.0.1:5000/api/utility/xml2dcr', auth=('test', '123'), data=testData)
@@ -522,11 +488,7 @@ class TestGetExecuted(unittest.TestCase):
 
 class TestExecuteEvent(unittest.TestCase):
     def test_access(self):
-        resp = r.put('http://127.0.0.1:5000/api/graphs/0/DCRsimulator/0/executeEvent/A4')
-        code = resp.status_code
-        msg = resp.json()
-        self.assertEqual(code, 403)
-        self.assertEqual(msg['Status'], 'Access Denied')     
+        access_setup(self, 'api/graphs/0/DCRsimulator/0/executeEvent/A4', 'put')     
 
     def test_unsuccessful(self):
         setup = r.post('http://127.0.0.1:5000/api/utility/xml2dcr', auth=('test', '123'), data=testData)
@@ -560,11 +522,7 @@ class TestExecuteEvent(unittest.TestCase):
 
 class TestExecuteTrace(unittest.TestCase):
     def test_access(self):
-        resp = r.put('http://127.0.0.1:5000/api/graphs/0/DCRsimulator/0/executeTrace')
-        code = resp.status_code
-        msg = resp.json()
-        self.assertEqual(code, 403)
-        self.assertEqual(msg['Status'], 'Access Denied')   
+        access_setup(self, 'api/graphs/0/DCRsimulator/0/executeTrace', 'put')   
 
     def test_misformated(self):
         data = testData + 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
@@ -608,5 +566,6 @@ class TestExecuteTrace(unittest.TestCase):
 
         check = r.get('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}' + '/executed', auth=('test', '123'))
         self.assertTrue(t in check.json() for t in json.loads(trace)['trace']) # Check that the event is in the executed list
+
 if __name__ == '__main__':
     unittest.main()
