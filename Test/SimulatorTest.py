@@ -10,9 +10,10 @@ from pm4py.objects.dcr.semantics import DcrSemantics
 from simulatorInit import createDCRgraph, ExecuteEventOnGraph, GetAllConds
 from server import replaceAllInstances
 import unittest
-'''from bs4 import BeautifulSoup'''
 import xmltodict, json
 
+# To run test, simply write: python -m unittest SimulatorTest.py 
+# when in terminal at right location ofc
 
 
 class SimulatorTest(unittest.TestCase):
@@ -36,8 +37,12 @@ class SimulatorTest(unittest.TestCase):
       self.graph.conditions["A1"]={"A3"}
       self.graph.conditions["A2"]={"A3"}
       self.createGraph = createDCRgraph(self.dict)
+      self.semantic = DcrSemantics()
 
-
+  def executeEvent(self,graph,event):
+    self.enabled = self.semantic.enabled(graph)
+    if event in self.enabled:
+      return self.semantic.execute(graph,event)
 
     
   def test_Markings(self):
@@ -66,13 +71,13 @@ class SimulatorTest(unittest.TestCase):
     self.assertEqual(GetAllConds(self.graph),GetAllConds(self.createGraph))
   
   def testExecuteEventNotEnabled(self):
-    ExecuteEventOnGraph(self.graph,"A1")
+    self.executeEvent(self.graph,"A1")
     ExecuteEventOnGraph(self.createGraph,"A1")
     self.assertEqual(self.createGraph.marking.included,self.graph.marking.included)
     self.assertEqual(self.createGraph.marking.pending,self.graph.marking.pending)
 
   def testExecuteEventEnabled(self):
-    ExecuteEventOnGraph(self.graph,"A3")
+    self.executeEvent(self.graph,"A3")
     ExecuteEventOnGraph(self.createGraph,"A3")
     self.assertEqual(self.createGraph.marking.included,self.graph.marking.included)
     self.assertEqual(self.createGraph.marking.pending,self.graph.marking.pending)
@@ -80,7 +85,7 @@ class SimulatorTest(unittest.TestCase):
   def testExecuteEventSequence(self):
     events = ["A3","A1"]
     for event in events:
-      ExecuteEventOnGraph(self.graph,event)
+      self.executeEvent(self.graph,event)
       ExecuteEventOnGraph(self.createGraph,event)
     self.assertEqual(self.createGraph.marking.included,self.graph.marking.included)
     self.assertEqual(self.createGraph.marking.pending,self.graph.marking.pending)
@@ -88,7 +93,7 @@ class SimulatorTest(unittest.TestCase):
   def testExecuteEventSequenceNotEnabled(self):
     events = ["A3","A2"]
     for event in events:
-      ExecuteEventOnGraph(self.graph,event)
+      self.executeEvent(self.graph,event)
       ExecuteEventOnGraph(self.createGraph,event)
     self.assertEqual(self.createGraph.marking.included,self.graph.marking.included)
     self.assertEqual(self.createGraph.marking.pending,self.graph.marking.pending)
@@ -96,7 +101,7 @@ class SimulatorTest(unittest.TestCase):
   def testExecuteEventCompleteSequence(self):
     events = ["A3","A1","A2"]
     for event in events:
-      ExecuteEventOnGraph(self.graph,event)
+      self.executeEvent(self.graph,event)
       ExecuteEventOnGraph(self.createGraph,event)
     self.assertEqual(self.createGraph.marking.included,self.graph.marking.included)
     self.assertEqual(self.createGraph.marking.pending,self.graph.marking.pending)
