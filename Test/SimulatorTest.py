@@ -53,7 +53,6 @@ class SimulatorTest(unittest.TestCase):
   def test_Excludes(self):
     self.assertEqual(self.createGraph.excludes,self.graph.excludes)
   
-
   def test_Responds(self):
     self.assertEqual(self.createGraph.responses,self.graph.responses)
 
@@ -62,6 +61,45 @@ class SimulatorTest(unittest.TestCase):
   
   def test_Label(self):
     self.assertEqual(self.createGraph.label_map,self.graph.label_map)
+
+  def test_GettAllConds(self):
+    self.assertEqual(GetAllConds(self.graph),GetAllConds(self.createGraph))
+  
+  def testExecuteEventNotEnabled(self):
+    ExecuteEventOnGraph(self.graph,"A1")
+    ExecuteEventOnGraph(self.createGraph,"A1")
+    self.assertEqual(self.createGraph.marking.included,self.graph.marking.included)
+    self.assertEqual(self.createGraph.marking.pending,self.graph.marking.pending)
+
+  def testExecuteEventEnabled(self):
+    ExecuteEventOnGraph(self.graph,"A3")
+    ExecuteEventOnGraph(self.createGraph,"A3")
+    self.assertEqual(self.createGraph.marking.included,self.graph.marking.included)
+    self.assertEqual(self.createGraph.marking.pending,self.graph.marking.pending)
+
+  def testExecuteEventSequence(self):
+    events = ["A3","A1"]
+    for event in events:
+      ExecuteEventOnGraph(self.graph,event)
+      ExecuteEventOnGraph(self.createGraph,event)
+    self.assertEqual(self.createGraph.marking.included,self.graph.marking.included)
+    self.assertEqual(self.createGraph.marking.pending,self.graph.marking.pending)
+
+  def testExecuteEventSequenceNotEnabled(self):
+    events = ["A3","A2"]
+    for event in events:
+      ExecuteEventOnGraph(self.graph,event)
+      ExecuteEventOnGraph(self.createGraph,event)
+    self.assertEqual(self.createGraph.marking.included,self.graph.marking.included)
+    self.assertEqual(self.createGraph.marking.pending,self.graph.marking.pending)
+
+  def testExecuteEventCompleteSequence(self):
+    events = ["A3","A1","A2"]
+    for event in events:
+      ExecuteEventOnGraph(self.graph,event)
+      ExecuteEventOnGraph(self.createGraph,event)
+    self.assertEqual(self.createGraph.marking.included,self.graph.marking.included)
+    self.assertEqual(self.createGraph.marking.pending,self.graph.marking.pending)
 
 if __name__ == '__main__':
   unittest.main()
