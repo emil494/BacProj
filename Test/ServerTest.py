@@ -225,8 +225,8 @@ testData = """
 import unittest
 import requests as r
 import json
-
-#TODO: Setup functions
+import flask
+from server import app 
 
 def access_setup(self, adr, method, ret = False):
     resp = r.request(method, 'http://127.0.0.1:5000/' + adr)
@@ -240,6 +240,11 @@ def access_setup(self, adr, method, ret = False):
     
 
 class TestLoadXML(unittest.TestCase):
+    #TODO: Make 1 unified object, rename functions and additional setup functions
+    def client_setUp(self):
+        self.client = app.test_client()  # create test client
+        self.client.testing = True
+
     def test_not_logged_in(self):
         resp = r.post('http://127.0.0.1:5000/api/utility/xml2dcr', data=testData)
         code = resp.status_code
