@@ -229,13 +229,13 @@ import json
 #TODO: Setup functions
 
 def access_setup(self, adr, method, ret = False):
-    resp = r.request('http://127.0.0.1:5000/' + adr, method=method)
+    resp = r.request(method, 'http://127.0.0.1:5000/' + adr)
     code = resp.status_code
     msg = resp.json()
-    self.assertEqual(code, 403)
-    self.assertEqual(msg['Status'], 'Access Denied')
     if ret:
         return code, msg
+    self.assertEqual(code, 403)
+    self.assertEqual(msg['Status'], 'Access Denied')
 # def sim_setup():
     
 
@@ -428,7 +428,7 @@ class TestGetRelations(unittest.TestCase):
         code = resp.status_code
         msg = resp.json()
         self.assertEqual(code, 200)
-        self.assertDictEqual(msg, {'Conditions': [{'A1': "{'A3'}"}], 'Excludes': [{'A2': "{'A1'}"}], 'Includes': [], 'Responses': []})
+        self.assertDictEqual(msg, {'Conditions': [{'A1': "{'A3'}"}], 'Excludes': [{'A2': "{'A1'}"}], 'Includes': [], 'Milestone': [], 'Responses': []})
 
 
 class TestGetIncluded(unittest.TestCase):
