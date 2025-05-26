@@ -1,9 +1,3 @@
-import sys
-import os
-
-
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, PROJECT_ROOT)
 
 from pm4py.objects.dcr.hierarchical.obj import HierarchicalDcrGraph
 from pm4py.objects.dcr.semantics import DcrSemantics
