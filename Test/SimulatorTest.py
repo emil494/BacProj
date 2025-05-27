@@ -1,18 +1,18 @@
 
 from pm4py.objects.dcr.hierarchical.obj import HierarchicalDcrGraph
-from pm4py.objects.dcr.semantics import DcrSemantics
+from pm4py.objects.dcr.extended.semantics import ExtendedSemantics
 from simulatorInit import createDCRgraph, ExecuteEventOnGraph, GetAllConds
 from server import replaceAllInstances
 import unittest
 import xmltodict, json
 
-# To run test, simply write: python -m unittest SimulatorTest.py 
+# To run test, simply write: python -m Test.SimulatorTest
 # when in terminal at right location ofc
 
 
 class SimulatorTest(unittest.TestCase):
   def setUp(self):
-      with open('XML/test3.xml', 'r') as f: 
+      with open('Test/XML/test4.xml', 'r') as f: 
           self.xml = f.read()
       self.xml2dict = xmltodict.parse(self.xml)
       self.dict = {"graph" :replaceAllInstances(self.xml2dict, 'null', None)}
@@ -29,9 +29,10 @@ class SimulatorTest(unittest.TestCase):
       self.graph.excludes["A2"]={"A3","A2","A1"}
       self.graph.includes["A1"]={"A2"}
       self.graph.conditions["A1"]={"A3"}
-      self.graph.conditions["A2"]={"A3"}
+      self.graph.milestones["A2"]={"A3"}
+
       self.createGraph = createDCRgraph(self.dict)
-      self.semantic = DcrSemantics()
+      self.semantic = ExtendedSemantics()
 
   def executeEvent(self,graph,event):
     self.enabled = self.semantic.enabled(graph)
