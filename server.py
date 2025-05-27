@@ -51,7 +51,7 @@ def loadXML():
         gidList.append(gid)
         dm.access[f'{auth}'] = gidList
 
-    return gid,201
+    return jsonify({'gid' : gid}),201
 
 @app.get('/api/graphs/<string:GID>')
 def getGraph(GID):
@@ -97,7 +97,7 @@ def SimulateInit(GID):
             dm.graphIDs[GID] = graph
             jsn = {sid: dcr}
             dm.simIDs.update(jsn)
-            return sid,201
+            return jsonify({'sid' : sid}),201
     return jsonify({"Status":"Unknown GID"}),404
 
 @app.get('/api/graphs/<string:GID>/sims/<string:SID>')
@@ -205,13 +205,11 @@ def executeTrace(GID, SID):
         jsn = request.data
         failed = []
         try: 
-            print('will it?')
             jsn = json.loads(jsn)
             trace = jsn['trace']
             for e in trace:
                 if ExecuteEventOnGraph(sim, e) is None:
                     failed.append(e)
-                print('yay')
             if len(failed) > 0:
                 return jsonify({"Status":{"Unsuccessful": failed, "Successful" : list(set(trace).difference(failed))}}), 409
             return jsonify({"Status":"Success"}), 200

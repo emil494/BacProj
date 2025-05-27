@@ -224,11 +224,11 @@ testData = """
 
 import unittest
 import json
-import flask
+import re
 from server import app     
 
 def access_setup(self, adr, method, ret = False):
-        resp = self.client.request(method, 'http://127.0.0.1:5000/' + adr)
+        resp = self.client.open(path=adr, method=method.upper())
         code = resp.status_code
         msg = resp.json
         if ret:
@@ -237,21 +237,22 @@ def access_setup(self, adr, method, ret = False):
         self.assertEqual(msg['Status'], 'Access Denied')
     
 def sim_setup(self):
-    setup = self.client.post('http://127.0.0.1:5000/api/utility/xml2dcr', auth=('test', '123'), data=testData)
-    gid = setup.json
-    setup2 = self.client.post('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/DCRsimulator', auth=('test', '123'))
-    sid = setup2.json
+    setup = self.client.post('/api/utility/xml2dcr', headers = {'Authorization' : 'Basic test'}, data=testData)
+    gid = setup.json['gid']
+    setup2 = self.client.post('/api/graphs/' + f'{gid}' + '/DCRsimulator', headers = {'Authorization' : 'Basic test'})
+    sid = setup2.json['sid']
     return gid, sid
 
+pattern = re.compile("[0-9]+") #To check if a string is a number
+
 class ServerTest(unittest.TestCase):
-    #TODO: Make 1 unified object, rename functions and additional setup functions
     def setUp(self):
         self.client = app.test_client()  # create test client
         self.client.testing = True
 
 
     def test_LoadXML_not_logged_in(self):
-        resp = self.client.post('http://127.0.0.1:5000/api/utility/xml2dcr', data=testData)
+        resp = self.client.post('/api/utility/xml2dcr', data=testData)
         code = resp.status_code
         msg = resp.json
         self.assertEqual(code, 403)
@@ -259,32 +260,32 @@ class ServerTest(unittest.TestCase):
 
     def test_LoadXML_misformated(self):
         test = testData + "aaaaaaaaaaaaaaaaaaaaajdisoandisadosa"
-        resp = self.client.post('http://127.0.0.1:5000/api/utility/xml2dcr', auth=('test', '123'), data=test)
+        resp = self.client.post('/api/utility/xml2dcr', headers = {'Authorization' : 'Basic test'}, data=test)
         code = resp.status_code
         msg = resp.json
         self.assertEqual(code, 400)
         self.assertEqual(msg['Status'], 'Misformated request data')
     
     def test_LoadXML_success(self):
-        resp = self.client.post('http://127.0.0.1:5000/api/utility/xml2dcr', auth=('test', '123'), data=testData)
+        resp = self.client.post('/api/utility/xml2dcr', headers = {'Authorization' : 'Basic test'}, data=testData)
         code = resp.status_code
-        msg = resp.json
+        gid = resp.json['gid']
         self.assertEqual(code, 201)
-        self.assertIsInstance(msg, int)
+        self.assertTrue(pattern.match(gid))
 
 
     def test_getGraph_access(self):
         access_setup(self, 'api/graphs/1', 'get')
 
     def test_getGraph_success(self):
-        setup = self.client.post('http://127.0.0.1:5000/api/utility/xml2dcr', auth=('test', '123'), data=testData)
+        setup = self.client.post('/api/utility/xml2dcr', headers = {'Authorization' : 'Basic test'}, data=testData)
         self.assertEqual(setup.status_code, 201)
-        id = setup.json
-        resp = self.client.get('http://127.0.0.1:5000/api/graphs/' + f'{id}', auth=('test', '123'))
+        gid = setup.json['gid']
+        resp = self.client.get('/api/graphs/' + f'{gid}', headers = {'Authorization' : 'Basic test'})
         code = resp.status_code
         msg = resp.json
         self.assertEqual(code, 200) 
-        self.assertTrue(key == id for key in msg.keys())
+        self.assertTrue(key == gid for key in msg.keys())
 
 
     def test_getGraphs_access(self):
@@ -293,16 +294,16 @@ class ServerTest(unittest.TestCase):
         self.assertEqual(msg['Status'], 'Not Logged In/ Invalid Authorization Type')
     
     def test_getGraphs_failed(self):
-        resp = self.client.get('http://127.0.0.1:5000/api/graphs', auth=('test', 'fail'))
+        resp = self.client.get('/api/graphs', auth=('test', 'fail'))
         code = resp.status_code
         msg = resp.json
         self.assertEqual(code, 404)
         self.assertEqual(msg['Status'], 'Failed')
 
     def test_getGraphs_success(self):
-        setup = self.client.post('http://127.0.0.1:5000/api/utility/xml2dcr', auth=('test', '123'), data=testData)
+        setup = self.client.post('/api/utility/xml2dcr', headers = {'Authorization' : 'Basic test'}, data=testData)
         self.assertEqual(setup.status_code, 201)
-        resp = self.client.get('http://127.0.0.1:5000/api/graphs', auth=('test', '123'))
+        resp = self.client.get('/api/graphs', headers = {'Authorization' : 'Basic test'})
         code = resp.status_code
         msg = resp.json
         self.assertEqual(code, 200) 
@@ -315,35 +316,35 @@ class ServerTest(unittest.TestCase):
         access_setup(self, 'api/graphs/0', 'delete')
 
     def test_deleteGraph_success(self):
-        setup = self.client.post('http://127.0.0.1:5000/api/utility/xml2dcr', auth=('test', '123'), data=testData)
+        setup = self.client.post('/api/utility/xml2dcr', headers = {'Authorization' : 'Basic test'}, data=testData)
         self.assertEqual(setup.status_code, 201)
-        id = setup.json
-        resp = self.client.delete('http://127.0.0.1:5000/api/graphs/' + f'{id}', auth=('test', '123'))
+        gid = setup.json['gid']
+        resp = self.client.delete('/api/graphs/' + f'{gid}', headers = {'Authorization' : 'Basic test'})
         code = resp.status_code
         msg = resp.json
         self.assertEqual(code, 200)
         self.assertEqual(msg['Status'], 'Success')
 
-        check = self.client.get('http://127.0.0.1:5000/api/graphs/' + f'{id}')
+        check = self.client.get('/api/graphs/' + f'{gid}')
         check_code = check.status_code
         self.assertEqual(check_code, 403) # Check if actually deleted
 
-        check2 = self.client.post('http://127.0.0.1:5000/api/utility/xml2dcr', auth=('test', '123'), data=testData)
+        check2 = self.client.post('/api/utility/xml2dcr', headers = {'Authorization' : 'Basic test'}, data=testData)
         self.assertEqual(check2.status_code, 201)
-        self.assertEqual(int(check2.content), id) # Check if id becomes available again
+        self.assertEqual(check2.json['gid'], gid) # Check if id becomes available again
 
 
     def test_DCRsimulator_access(self):
         access_setup(self, 'api/graphs/0/DCRsimulator', 'post')
     
     def test_DCRsimulator_success(self):
-        setup = self.client.post('http://127.0.0.1:5000/api/utility/xml2dcr', auth=('test', '123'), data=testData)
-        gid = setup.json
-        resp = self.client.post('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/DCRsimulator', auth=('test', '123'))
+        setup = self.client.post('/api/utility/xml2dcr', headers = {'Authorization' : 'Basic test'}, data=testData)
+        gid = setup.json['gid']
+        resp = self.client.post('/api/graphs/' + f'{gid}' + '/DCRsimulator', headers = {'Authorization' : 'Basic test'})
         code = resp.status_code
-        sid = int(resp.json)
+        sid = resp.json['sid']
         self.assertEqual(code, 201)
-        self.assertIsInstance(sid, int) # Accuracy of graph is tested in SimulatorTest
+        self.assertTrue(pattern.match(sid)) # Accuracy of graph is tested in SimulatorTest
 
 
     def test_getSim_access(self):
@@ -351,7 +352,7 @@ class ServerTest(unittest.TestCase):
 
     def test_getSim_success(self):
         gid, sid = sim_setup(self)
-        resp = self.client.get(f'http://127.0.0.1:5000/api/graphs/{gid}/sims/{sid}', auth=('test', '123'))
+        resp = self.client.get(f'/api/graphs/{gid}/sims/{sid}', headers = {'Authorization' : 'Basic test'})
         code = resp.status_code
         msg = resp.json
         self.assertEqual(code, 200)
@@ -363,7 +364,7 @@ class ServerTest(unittest.TestCase):
 
     def test_getSims_success(self):
         gid, sid = sim_setup(self)
-        resp = self.client.get(f'http://127.0.0.1:5000/api/graphs/{gid}/sims', auth=('test', '123'))
+        resp = self.client.get(f'/api/graphs/{gid}/sims', headers = {'Authorization' : 'Basic test'})
         code = resp.status_code
         msg = resp.json
         self.assertEqual(code, 200)
@@ -375,19 +376,19 @@ class ServerTest(unittest.TestCase):
 
     def test_deleteSim_success(self):
         gid, sid = sim_setup(self)
-        resp = self.client.delete('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}', auth=('test', '123'))
+        resp = self.client.delete('/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}', headers = {'Authorization' : 'Basic test'})
         code = resp.status_code
         msg = resp.json
         self.assertEqual(code, 200)
         self.assertEqual(msg['Status'], 'Success')
 
-        check = self.client.get('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}')
+        check = self.client.get('/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}')
         check_code = check.status_code
         self.assertEqual(check_code, 403) # Check if actually deleted
 
-        check2 = self.client.post('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/DCRsimulator', auth=('test', '123'), data=testData)
+        check2 = self.client.post('/api/graphs/' + f'{gid}' + '/DCRsimulator', headers = {'Authorization' : 'Basic test'}, data=testData)
         self.assertEqual(check2.status_code, 201)
-        self.assertEqual(check2.json, sid) # Check if id becomes available again
+        self.assertEqual(check2.json['sid'], sid) # Check if id becomes available again
 
 
     def test_getEvents_access(self):
@@ -395,7 +396,7 @@ class ServerTest(unittest.TestCase):
 
     def test_getEvents_success(self):
         gid, sid = sim_setup(self)
-        resp = self.client.get('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}' + '/events', auth=('test', '123'))
+        resp = self.client.get('/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}' + '/events', headers = {'Authorization' : 'Basic test'})
         code = resp.status_code
         msg = resp.json
         self.assertEqual(code, 200)
@@ -407,7 +408,7 @@ class ServerTest(unittest.TestCase):
 
     def test_getRelations_success(self):
         gid, sid = sim_setup(self)
-        resp = self.client.get('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}' + '/relations', auth=('test', '123'))
+        resp = self.client.get('/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}' + '/relations', headers = {'Authorization' : 'Basic test'})
         code = resp.status_code
         msg = resp.json
         self.assertEqual(code, 200)
@@ -419,7 +420,7 @@ class ServerTest(unittest.TestCase):
 
     def test_getIncluded_success(self):
         gid, sid = sim_setup(self)
-        resp = self.client.get('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}' + '/included', auth=('test', '123'))
+        resp = self.client.get('/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}' + '/included', headers = {'Authorization' : 'Basic test'})
         code = resp.status_code
         msg = resp.json
         self.assertEqual(code, 200)
@@ -433,7 +434,7 @@ class ServerTest(unittest.TestCase):
 
     def test_getPending_success(self):
         gid, sid = sim_setup(self)
-        resp = self.client.get('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}' + '/pending', auth=('test', '123'))
+        resp = self.client.get('/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}' + '/pending', headers = {'Authorization' : 'Basic test'})
         code = resp.status_code
         msg = resp.json
         self.assertEqual(code, 200)
@@ -447,7 +448,7 @@ class ServerTest(unittest.TestCase):
 
     def test_getExecuted_success(self):
         gid, sid = sim_setup(self)
-        resp = self.client.get('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}' + '/executed', auth=('test', '123'))
+        resp = self.client.get('/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}' + '/executed', headers = {'Authorization' : 'Basic test'})
         code = resp.status_code
         msg = resp.json
         self.assertEqual(code, 200)
@@ -462,7 +463,7 @@ class ServerTest(unittest.TestCase):
     def test_executeEvent_unsuccessful(self):
         gid, sid = sim_setup(self)
         event = 'A1' #TODO: If nesting semantics implemented, change event to A2 or A4
-        resp = self.client.put('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeEvent/' + event, auth=('test', '123'))
+        resp = self.client.put('/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeEvent/' + event, headers = {'Authorization' : 'Basic test'})
         code = resp.status_code
         msg = resp.json
         self.assertEqual(code, 409)
@@ -471,13 +472,13 @@ class ServerTest(unittest.TestCase):
     def test_executeEvent_success(self):
         gid, sid = sim_setup(self)
         event = 'A3'
-        resp = self.client.put('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeEvent/' + event, auth=('test', '123'))
+        resp = self.client.put('/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeEvent/' + event, headers = {'Authorization' : 'Basic test'})
         code = resp.status_code
         msg = resp.json
         self.assertEqual(code, 200)
         self.assertEqual(msg['Status'], "Success")
 
-        check = self.client.get('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}' + '/executed', auth=('test', '123'))
+        check = self.client.get('/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}' + '/executed', headers = {'Authorization' : 'Basic test'})
         self.assertIn(event, check.json) # Check that the event is in the executed list
 
 
@@ -487,7 +488,7 @@ class ServerTest(unittest.TestCase):
     def test_executeTrace_misformated(self):
         data = testData + 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
         gid, sid = sim_setup(self)
-        resp = self.client.put('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeTrace', auth=('test', '123'), data=data)
+        resp = self.client.put('/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeTrace', headers = {'Authorization' : 'Basic test'}, data=data)
         code = resp.status_code
         msg = resp.json
         self.assertEqual(code, 400)
@@ -497,7 +498,7 @@ class ServerTest(unittest.TestCase):
         trace = '{"trace": ["A1", "A3"]}'
         #TODO: Change A1 to A2 or A4 when nesting semantics are implemented
         gid, sid = sim_setup(self)
-        resp = self.client.put('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeTrace', auth=('test', '123'), data=trace)
+        resp = self.client.put('/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeTrace', headers = {'Authorization' : 'Basic test'}, data=trace)
         code = resp.status_code
         msg = resp.json
         self.assertEqual(code, 409)
@@ -506,13 +507,13 @@ class ServerTest(unittest.TestCase):
     def test_executeTrace_success(self):
         trace = '{"trace": ["A3", "A1"]}'
         gid, sid = sim_setup(self)
-        resp = self.client.put('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeTrace', auth=('test', '123'), data=trace)
+        resp = self.client.put('/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeTrace', headers = {'Authorization' : 'Basic test'}, data=trace)
         code = resp.status_code
         msg = resp.json
         self.assertEqual(code, 200)
         self.assertEqual(msg['Status'], 'Success')
 
-        check = self.client.get('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}' + '/executed', auth=('test', '123'))
+        check = self.client.get('/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}' + '/executed', headers = {'Authorization' : 'Basic test'})
         self.assertTrue(t in check.json for t in json.loads(trace)['trace']) # Check that the event is in the executed list
 
 if __name__ == '__main__':
