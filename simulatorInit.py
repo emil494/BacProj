@@ -120,7 +120,6 @@ def createDCRgraph(graph):
 
 def ExecuteEventOnGraph(dcr,event):
     semantics = ExtendedSemantics()
-    print(semantics.enabled(dcr))
     if event in semantics.enabled(dcr):
         return semantics.execute(dcr,event)
     return None
