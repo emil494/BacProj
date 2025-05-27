@@ -258,13 +258,13 @@ class ServerTest(unittest.TestCase):
         self.assertEqual(code, 403)
         self.assertEqual(msg['Status'], 'Not Logged In/ Invalid Authorization Type')
 
-    def test_LoadXML_misformated(self):
+    def test_LoadXML_malformed(self):
         test = testData + "aaaaaaaaaaaaaaaaaaaaajdisoandisadosa"
         resp = self.client.post('/api/utility/xml2dcr', headers = {'Authorization' : 'Basic test'}, data=test)
         code = resp.status_code
         msg = resp.json
         self.assertEqual(code, 400)
-        self.assertEqual(msg['Status'], 'Misformated request data')
+        self.assertEqual(msg['Status'], 'Malformed request data')
     
     def test_LoadXML_success(self):
         resp = self.client.post('/api/utility/xml2dcr', headers = {'Authorization' : 'Basic test'}, data=testData)
@@ -485,14 +485,14 @@ class ServerTest(unittest.TestCase):
     def test_executeTrace_access(self):
         access_setup(self, 'api/graphs/0/DCRsimulator/0/executeTrace', 'put')   
 
-    def test_executeTrace_misformated(self):
+    def test_executeTrace_malformed(self):
         data = testData + 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
         gid, sid = sim_setup(self)
         resp = self.client.put('/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeTrace', headers = {'Authorization' : 'Basic test'}, data=data)
         code = resp.status_code
         msg = resp.json
         self.assertEqual(code, 400)
-        self.assertEqual(msg['Status'], 'Misformated request data')     
+        self.assertEqual(msg['Status'], 'Malformed request data')     
 
     def test_executeTrace_unsuccessful(self):
         trace = '{"trace": ["A1", "A3"]}'
