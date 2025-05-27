@@ -35,7 +35,7 @@ def loadXML():
     try:
         dict = xmltodict.parse(xml)
     except:
-        return jsonify({"Status":'Misformated request data'}),400
+        return jsonify({"Status":'Malformed request data'}),400
     
     dict = replaceAllInstances(dict, 'null', None) # For easier python handling
     gid = dm.assignGid()
@@ -214,5 +214,5 @@ def executeTrace(GID, SID):
                 return jsonify({"Status":{"Unsuccessful": failed, "Successful" : list(set(trace).difference(failed))}}), 409
             return jsonify({"Status":"Success"}), 200
         except:
-            return jsonify({"Status":'Misformated request data'}),400
+            return jsonify({"Status":'Malformed request data'}),400
     return jsonify({"Status":'Unknown SID'}),404
