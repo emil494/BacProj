@@ -362,7 +362,7 @@ class ServerTest(unittest.TestCase):
         access_setup(self, 'api/graphs/0/sims', 'get')
 
     def test_getSims_success(self):
-        gid, sid = sim_setup()
+        gid, sid = sim_setup(self)
         resp = self.client.get(f'http://127.0.0.1:5000/api/graphs/{gid}/sims', auth=('test', '123'))
         code = resp.status_code
         msg = resp.json()
@@ -374,7 +374,7 @@ class ServerTest(unittest.TestCase):
         access_setup(self, 'api/graphs/0/sims/100', 'delete')        
 
     def test_deleteSim_success(self):
-        gid, sid = sim_setup()
+        gid, sid = sim_setup(self)
         resp = self.client.delete('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}', auth=('test', '123'))
         code = resp.status_code
         msg = resp.json()
@@ -394,7 +394,7 @@ class ServerTest(unittest.TestCase):
         access_setup(self, 'api/graphs/0/sims/100/events', 'get')     
 
     def test_getEvents_success(self):
-        gid, sid = sim_setup()
+        gid, sid = sim_setup(self)
         resp = self.client.get('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}' + '/events', auth=('test', '123'))
         code = resp.status_code
         msg = resp.json()
@@ -406,7 +406,7 @@ class ServerTest(unittest.TestCase):
         access_setup(self, 'api/graphs/0/sims/100/relations', 'get')     
 
     def test_getRelations_success(self):
-        gid, sid = sim_setup()
+        gid, sid = sim_setup(self)
         resp = self.client.get('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}' + '/relations', auth=('test', '123'))
         code = resp.status_code
         msg = resp.json()
@@ -418,7 +418,7 @@ class ServerTest(unittest.TestCase):
         access_setup(self, 'api/graphs/0/sims/100/included', 'get')     
 
     def test_getIncluded_success(self):
-        gid, sid = sim_setup()
+        gid, sid = sim_setup(self)
         resp = self.client.get('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}' + '/included', auth=('test', '123'))
         code = resp.status_code
         msg = resp.json()
@@ -432,7 +432,7 @@ class ServerTest(unittest.TestCase):
         access_setup(self, 'api/graphs/0/sims/100/pending', 'get')     
 
     def test_getPending_success(self):
-        gid, sid = sim_setup()
+        gid, sid = sim_setup(self)
         resp = self.client.get('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}' + '/pending', auth=('test', '123'))
         code = resp.status_code
         msg = resp.json()
@@ -446,7 +446,7 @@ class ServerTest(unittest.TestCase):
         access_setup(self, 'api/graphs/0/sims/100/executed', 'get')     
 
     def test_getExecuted_success(self):
-        gid, sid = sim_setup()
+        gid, sid = sim_setup(self)
         resp = self.client.get('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}' + '/executed', auth=('test', '123'))
         code = resp.status_code
         msg = resp.json()
@@ -460,7 +460,7 @@ class ServerTest(unittest.TestCase):
         access_setup(self, 'api/graphs/0/DCRsimulator/0/executeEvent/A4', 'put')     
 
     def test_executeEvent_unsuccessful(self):
-        gid, sid = sim_setup()
+        gid, sid = sim_setup(self)
         event = 'A1' #TODO: If nesting semantics implemented, change event to A2 or A4
         resp = self.client.put('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeEvent/' + event, auth=('test', '123'))
         code = resp.status_code
@@ -469,7 +469,7 @@ class ServerTest(unittest.TestCase):
         self.assertEqual(msg['Status'], {"Unsuccessful": ['A1'], "Successful" : []})
 
     def test_executeEvent_success(self):
-        gid, sid = sim_setup()
+        gid, sid = sim_setup(self)
         event = 'A3'
         resp = self.client.put('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeEvent/' + event, auth=('test', '123'))
         code = resp.status_code
@@ -486,7 +486,7 @@ class ServerTest(unittest.TestCase):
 
     def test_executeTrace_misformated(self):
         data = testData + 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
-        gid, sid = sim_setup()
+        gid, sid = sim_setup(self)
         resp = self.client.put('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeTrace', auth=('test', '123'), data=data)
         code = resp.status_code
         msg = resp.json()
@@ -496,7 +496,7 @@ class ServerTest(unittest.TestCase):
     def test_executeTrace_unsuccessful(self):
         trace = '{"trace": ["A1", "A3"]}'
         #TODO: Change A1 to A2 or A4 when nesting semantics are implemented
-        gid, sid = sim_setup()
+        gid, sid = sim_setup(self)
         resp = self.client.put('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeTrace', auth=('test', '123'), data=trace)
         code = resp.status_code
         msg = resp.json()
@@ -505,7 +505,7 @@ class ServerTest(unittest.TestCase):
 
     def test_executeTrace_success(self):
         trace = '{"trace": ["A3", "A1"]}'
-        gid, sid = sim_setup()
+        gid, sid = sim_setup(self)
         resp = self.client.put('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeTrace', auth=('test', '123'), data=trace)
         code = resp.status_code
         msg = resp.json()
