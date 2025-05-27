@@ -230,7 +230,7 @@ from server import app
 def access_setup(self, adr, method, ret = False):
         resp = self.client.request(method, 'http://127.0.0.1:5000/' + adr)
         code = resp.status_code
-        msg = resp.json()
+        msg = resp.json
         if ret:
             return code, msg
         self.assertEqual(code, 403)
@@ -238,9 +238,9 @@ def access_setup(self, adr, method, ret = False):
     
 def sim_setup(self):
     setup = self.client.post('http://127.0.0.1:5000/api/utility/xml2dcr', auth=('test', '123'), data=testData)
-    gid = setup.json()
+    gid = setup.json
     setup2 = self.client.post('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/DCRsimulator', auth=('test', '123'))
-    sid = setup2.json()
+    sid = setup2.json
     return gid, sid
 
 class ServerTest(unittest.TestCase):
@@ -253,7 +253,7 @@ class ServerTest(unittest.TestCase):
     def test_LoadXML_not_logged_in(self):
         resp = self.client.post('http://127.0.0.1:5000/api/utility/xml2dcr', data=testData)
         code = resp.status_code
-        msg = resp.json()
+        msg = resp.json
         self.assertEqual(code, 403)
         self.assertEqual(msg['Status'], 'Not Logged In/ Invalid Authorization Type')
 
@@ -261,14 +261,14 @@ class ServerTest(unittest.TestCase):
         test = testData + "aaaaaaaaaaaaaaaaaaaaajdisoandisadosa"
         resp = self.client.post('http://127.0.0.1:5000/api/utility/xml2dcr', auth=('test', '123'), data=test)
         code = resp.status_code
-        msg = resp.json()
+        msg = resp.json
         self.assertEqual(code, 400)
         self.assertEqual(msg['Status'], 'Misformated request data')
     
     def test_LoadXML_success(self):
         resp = self.client.post('http://127.0.0.1:5000/api/utility/xml2dcr', auth=('test', '123'), data=testData)
         code = resp.status_code
-        msg = resp.json()
+        msg = resp.json
         self.assertEqual(code, 201)
         self.assertIsInstance(msg, int)
 
@@ -279,10 +279,10 @@ class ServerTest(unittest.TestCase):
     def test_getGraph_success(self):
         setup = self.client.post('http://127.0.0.1:5000/api/utility/xml2dcr', auth=('test', '123'), data=testData)
         self.assertEqual(setup.status_code, 201)
-        id = setup.json()
+        id = setup.json
         resp = self.client.get('http://127.0.0.1:5000/api/graphs/' + f'{id}', auth=('test', '123'))
         code = resp.status_code
-        msg = resp.json()
+        msg = resp.json
         self.assertEqual(code, 200) 
         self.assertTrue(key == id for key in msg.keys())
 
@@ -295,7 +295,7 @@ class ServerTest(unittest.TestCase):
     def test_getGraphs_failed(self):
         resp = self.client.get('http://127.0.0.1:5000/api/graphs', auth=('test', 'fail'))
         code = resp.status_code
-        msg = resp.json()
+        msg = resp.json
         self.assertEqual(code, 404)
         self.assertEqual(msg['Status'], 'Failed')
 
@@ -304,7 +304,7 @@ class ServerTest(unittest.TestCase):
         self.assertEqual(setup.status_code, 201)
         resp = self.client.get('http://127.0.0.1:5000/api/graphs', auth=('test', '123'))
         code = resp.status_code
-        msg = resp.json()
+        msg = resp.json
         self.assertEqual(code, 200) 
         ids = msg['GIDs']
         self.assertIsInstance(ids, list)
@@ -317,10 +317,10 @@ class ServerTest(unittest.TestCase):
     def test_deleteGraph_success(self):
         setup = self.client.post('http://127.0.0.1:5000/api/utility/xml2dcr', auth=('test', '123'), data=testData)
         self.assertEqual(setup.status_code, 201)
-        id = setup.json()
+        id = setup.json
         resp = self.client.delete('http://127.0.0.1:5000/api/graphs/' + f'{id}', auth=('test', '123'))
         code = resp.status_code
-        msg = resp.json()
+        msg = resp.json
         self.assertEqual(code, 200)
         self.assertEqual(msg['Status'], 'Success')
 
@@ -338,10 +338,10 @@ class ServerTest(unittest.TestCase):
     
     def test_DCRsimulator_success(self):
         setup = self.client.post('http://127.0.0.1:5000/api/utility/xml2dcr', auth=('test', '123'), data=testData)
-        gid = setup.json()
+        gid = setup.json
         resp = self.client.post('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/DCRsimulator', auth=('test', '123'))
         code = resp.status_code
-        sid = int(resp.json())
+        sid = int(resp.json)
         self.assertEqual(code, 201)
         self.assertIsInstance(sid, int) # Accuracy of graph is tested in SimulatorTest
 
@@ -350,10 +350,10 @@ class ServerTest(unittest.TestCase):
         access_setup(self, 'api/graphs/0/sims/100', 'get')
 
     def test_getSim_success(self):
-        gid, sid = sim_setup()
+        gid, sid = sim_setup(self)
         resp = self.client.get(f'http://127.0.0.1:5000/api/graphs/{gid}/sims/{sid}', auth=('test', '123'))
         code = resp.status_code
-        msg = resp.json()
+        msg = resp.json
         self.assertEqual(code, 200)
         self.assertTrue(key == sid for key in msg.keys())
 
@@ -365,7 +365,7 @@ class ServerTest(unittest.TestCase):
         gid, sid = sim_setup(self)
         resp = self.client.get(f'http://127.0.0.1:5000/api/graphs/{gid}/sims', auth=('test', '123'))
         code = resp.status_code
-        msg = resp.json()
+        msg = resp.json
         self.assertEqual(code, 200)
         self.assertIn(str(sid), msg)
 
@@ -377,7 +377,7 @@ class ServerTest(unittest.TestCase):
         gid, sid = sim_setup(self)
         resp = self.client.delete('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}', auth=('test', '123'))
         code = resp.status_code
-        msg = resp.json()
+        msg = resp.json
         self.assertEqual(code, 200)
         self.assertEqual(msg['Status'], 'Success')
 
@@ -387,7 +387,7 @@ class ServerTest(unittest.TestCase):
 
         check2 = self.client.post('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/DCRsimulator', auth=('test', '123'), data=testData)
         self.assertEqual(check2.status_code, 201)
-        self.assertEqual(check2.json(), sid) # Check if id becomes available again
+        self.assertEqual(check2.json, sid) # Check if id becomes available again
 
 
     def test_getEvents_access(self):
@@ -397,7 +397,7 @@ class ServerTest(unittest.TestCase):
         gid, sid = sim_setup(self)
         resp = self.client.get('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}' + '/events', auth=('test', '123'))
         code = resp.status_code
-        msg = resp.json()
+        msg = resp.json
         self.assertEqual(code, 200)
         self.assertDictEqual(msg, {'A1' : 'A1', 'A2' : 'A2', 'A3' : 'A3', 'A4' : 'A4'})
 
@@ -409,7 +409,7 @@ class ServerTest(unittest.TestCase):
         gid, sid = sim_setup(self)
         resp = self.client.get('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}' + '/relations', auth=('test', '123'))
         code = resp.status_code
-        msg = resp.json()
+        msg = resp.json
         self.assertEqual(code, 200)
         self.assertDictEqual(msg, {'Conditions': [{'A1': "{'A3'}"}], 'Excludes': [{'A2': "{'A1'}"}], 'Includes': [], 'Milestone': [], 'Responses': []})
 
@@ -421,7 +421,7 @@ class ServerTest(unittest.TestCase):
         gid, sid = sim_setup(self)
         resp = self.client.get('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}' + '/included', auth=('test', '123'))
         code = resp.status_code
-        msg = resp.json()
+        msg = resp.json
         self.assertEqual(code, 200)
         events = ['A1', 'A2', 'A3', 'A4']
         self.assertEqual(len(events), len(msg))
@@ -435,7 +435,7 @@ class ServerTest(unittest.TestCase):
         gid, sid = sim_setup(self)
         resp = self.client.get('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}' + '/pending', auth=('test', '123'))
         code = resp.status_code
-        msg = resp.json()
+        msg = resp.json
         self.assertEqual(code, 200)
         events = []
         self.assertEqual(len(events), len(msg))
@@ -449,7 +449,7 @@ class ServerTest(unittest.TestCase):
         gid, sid = sim_setup(self)
         resp = self.client.get('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}' + '/executed', auth=('test', '123'))
         code = resp.status_code
-        msg = resp.json()
+        msg = resp.json
         self.assertEqual(code, 200)
         events = []
         self.assertEqual(len(events), len(msg))
@@ -464,7 +464,7 @@ class ServerTest(unittest.TestCase):
         event = 'A1' #TODO: If nesting semantics implemented, change event to A2 or A4
         resp = self.client.put('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeEvent/' + event, auth=('test', '123'))
         code = resp.status_code
-        msg = resp.json()
+        msg = resp.json
         self.assertEqual(code, 409)
         self.assertEqual(msg['Status'], {"Unsuccessful": ['A1'], "Successful" : []})
 
@@ -473,12 +473,12 @@ class ServerTest(unittest.TestCase):
         event = 'A3'
         resp = self.client.put('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeEvent/' + event, auth=('test', '123'))
         code = resp.status_code
-        msg = resp.json()
+        msg = resp.json
         self.assertEqual(code, 200)
         self.assertEqual(msg['Status'], "Success")
 
         check = self.client.get('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}' + '/executed', auth=('test', '123'))
-        self.assertIn(event, check.json()) # Check that the event is in the executed list
+        self.assertIn(event, check.json) # Check that the event is in the executed list
 
 
     def test_executeTrace_access(self):
@@ -489,7 +489,7 @@ class ServerTest(unittest.TestCase):
         gid, sid = sim_setup(self)
         resp = self.client.put('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeTrace', auth=('test', '123'), data=data)
         code = resp.status_code
-        msg = resp.json()
+        msg = resp.json
         self.assertEqual(code, 400)
         self.assertEqual(msg['Status'], 'Misformated request data')     
 
@@ -499,7 +499,7 @@ class ServerTest(unittest.TestCase):
         gid, sid = sim_setup(self)
         resp = self.client.put('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeTrace', auth=('test', '123'), data=trace)
         code = resp.status_code
-        msg = resp.json()
+        msg = resp.json
         self.assertEqual(code, 409)
         self.assertDictEqual(msg['Status'], {"Unsuccessful": ['A1'], "Successful" : ['A3']})
 
@@ -508,12 +508,12 @@ class ServerTest(unittest.TestCase):
         gid, sid = sim_setup(self)
         resp = self.client.put('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeTrace', auth=('test', '123'), data=trace)
         code = resp.status_code
-        msg = resp.json()
+        msg = resp.json
         self.assertEqual(code, 200)
         self.assertEqual(msg['Status'], 'Success')
 
         check = self.client.get('http://127.0.0.1:5000/api/graphs/' + f'{gid}' + '/sims/' + f'{sid}' + '/executed', auth=('test', '123'))
-        self.assertTrue(t in check.json() for t in json.loads(trace)['trace']) # Check that the event is in the executed list
+        self.assertTrue(t in check.json for t in json.loads(trace)['trace']) # Check that the event is in the executed list
 
 if __name__ == '__main__':
     unittest.main()
