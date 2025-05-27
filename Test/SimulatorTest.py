@@ -66,8 +66,16 @@ class SimulatorTest(unittest.TestCase):
     self.assertEqual(GetAllConds(self.graph),GetAllConds(self.createGraph))
   
   def testExecuteEventNotEnabled(self):
+    orginalCreateGraph = self.createGraph
+    originalgraph = self.graph 
     self.executeEvent(self.graph,"A1")
     ExecuteEventOnGraph(self.createGraph,"A1")
+    self.assertEqual(self.createGraph.marking.included,orginalCreateGraph.marking.included)
+    self.assertEqual(self.graph.marking.included,originalgraph.marking.included)
+
+    self.assertEqual(self.createGraph.marking.pending,orginalCreateGraph.marking.pending)
+    self.assertEqual(self.graph.marking.pending,originalgraph.marking.pending)
+
     self.assertEqual(self.createGraph.marking.included,self.graph.marking.included)
     self.assertEqual(self.createGraph.marking.pending,self.graph.marking.pending)
 
