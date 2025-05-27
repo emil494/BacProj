@@ -223,7 +223,6 @@ testData = """
 </dcrgraph>"""
 
 import unittest
-import requests as r
 import json
 import flask
 from server import app     
