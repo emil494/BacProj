@@ -125,14 +125,13 @@ def ExecuteEventOnGraph(dcr,event):
     return None
 
 def GetAllConds(SID):
-    allConst = {"Conditions": SID.conditions,
+    allConds = {"Conditions": SID.conditions,
                 "Responses" : SID.responses,
                 "Includes": SID.includes,
-                "Excludes":SID.excludes,
+                "Excludes": SID.excludes,
                 "Milestone": SID.milestones}
-    allConds= {}
-    for key,val in allConst.items():
-        allConds[key] = []
+    for key,val in allConds.items():
+        allConds[key] = {}
         for cKey,cVal in val.items():
-            allConds[key].extend([{cKey:str(cVal)}])
+            allConds[key].update({cKey:list(cVal)})
     return allConds
