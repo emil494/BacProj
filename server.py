@@ -182,7 +182,7 @@ def getExecuted(GID, SID):
     
     return jsonify({"Status":'Unknown SID'}),404
 
-@app.put('/api/graphs/<string:GID>/DCRsimulator/<string:SID>/executeEvent/<string:event>')
+@app.post('/api/graphs/<string:GID>/DCRsimulator/<string:SID>/executeEvent/<string:event>')
 def executeEvent(GID, SID, event):
     if not dm.checkAccessSim(request.headers, GID, SID):
         return jsonify({"Status":'Access Denied'}),403
@@ -195,7 +195,7 @@ def executeEvent(GID, SID, event):
         return jsonify({"Status":'Success'}), 200
     return jsonify({"Status":'Unknown SID'}),404
 
-@app.put('/api/graphs/<string:GID>/DCRsimulator/<string:SID>/executeTrace')
+@app.post('/api/graphs/<string:GID>/DCRsimulator/<string:SID>/executeTrace')
 def executeTrace(GID, SID):
     if not dm.checkAccessSim(request.headers, GID, SID):
         return jsonify({"Status":'Access Denied'}),403
