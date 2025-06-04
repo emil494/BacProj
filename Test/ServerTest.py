@@ -412,7 +412,7 @@ class ServerTest(unittest.TestCase):
         code = resp.status_code
         msg = resp.json
         self.assertEqual(code, 200)
-        self.assertDictEqual(msg, {'Conditions': [{'A1': "{'A3'}"}], 'Excludes': [{'A2': "{'A1'}"}], 'Includes': [], 'Milestone': [], 'Responses': []})
+        self.assertDictEqual(msg, {'Conditions': {'A1': ['A3']}, 'Excludes': {'A2': ['A1']}, 'Includes': {}, 'Milestone': {}, 'Responses': {}})
 
 
     def test_getIncluded_access(self):
@@ -458,12 +458,12 @@ class ServerTest(unittest.TestCase):
 
 
     def test_executeEvent_access(self):
-        access_setup(self, 'api/graphs/0/DCRsimulator/0/executeEvent/A4', 'put')     
+        access_setup(self, 'api/graphs/0/DCRsimulator/0/executeEvent/A4', 'post')     
 
     def test_executeEvent_unsuccessful(self):
         gid, sid = sim_setup(self)
         event = 'A1' #TODO: If nesting semantics implemented, change event to A2 or A4
-        resp = self.client.put('/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeEvent/' + event, headers = {'Authorization' : 'Basic test'})
+        resp = self.client.post('/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeEvent/' + event, headers = {'Authorization' : 'Basic test'})
         code = resp.status_code
         msg = resp.json
         self.assertEqual(code, 409)
@@ -472,7 +472,7 @@ class ServerTest(unittest.TestCase):
     def test_executeEvent_success(self):
         gid, sid = sim_setup(self)
         event = 'A3'
-        resp = self.client.put('/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeEvent/' + event, headers = {'Authorization' : 'Basic test'})
+        resp = self.client.post('/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeEvent/' + event, headers = {'Authorization' : 'Basic test'})
         code = resp.status_code
         msg = resp.json
         self.assertEqual(code, 200)
@@ -483,12 +483,12 @@ class ServerTest(unittest.TestCase):
 
 
     def test_executeTrace_access(self):
-        access_setup(self, 'api/graphs/0/DCRsimulator/0/executeTrace', 'put')   
+        access_setup(self, 'api/graphs/0/DCRsimulator/0/executeTrace', 'post')   
 
     def test_executeTrace_malformed(self):
         data = testData + 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
         gid, sid = sim_setup(self)
-        resp = self.client.put('/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeTrace', headers = {'Authorization' : 'Basic test'}, data=data)
+        resp = self.client.post('/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeTrace', headers = {'Authorization' : 'Basic test'}, data=data)
         code = resp.status_code
         msg = resp.json
         self.assertEqual(code, 400)
@@ -498,7 +498,7 @@ class ServerTest(unittest.TestCase):
         trace = '{"trace": ["A1", "A3"]}'
         #TODO: Change A1 to A2 or A4 when nesting semantics are implemented
         gid, sid = sim_setup(self)
-        resp = self.client.put('/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeTrace', headers = {'Authorization' : 'Basic test'}, data=trace)
+        resp = self.client.post('/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeTrace', headers = {'Authorization' : 'Basic test'}, data=trace)
         code = resp.status_code
         msg = resp.json
         self.assertEqual(code, 409)
@@ -507,7 +507,7 @@ class ServerTest(unittest.TestCase):
     def test_executeTrace_success(self):
         trace = '{"trace": ["A3", "A1"]}'
         gid, sid = sim_setup(self)
-        resp = self.client.put('/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeTrace', headers = {'Authorization' : 'Basic test'}, data=trace)
+        resp = self.client.post('/api/graphs/' + f'{gid}' + '/DCRsimulator/' + f'{sid}' + '/executeTrace', headers = {'Authorization' : 'Basic test'}, data=trace)
         code = resp.status_code
         msg = resp.json
         self.assertEqual(code, 200)
