@@ -16,6 +16,15 @@ app = Flask(__name__)
 dm = dataManager()
 
 def replaceAllInstances(input, old, new):
+    """
+    replaceAllInstances replaces all instances of "old" with "new" in the given input. 
+    Instances can only be part of the items, not the keys of json.
+
+    :param input: data structured as json
+    :param old: Keyword you want replaced
+    :param new: The item to want old to be replaced by
+    :returns: A modified version of "input" with requested replacements
+    """
     if isinstance(input, dict):
         return {k: replaceAllInstances(v, old, new) for k, v in input.items()}
     elif isinstance(input, list):
@@ -24,9 +33,15 @@ def replaceAllInstances(input, old, new):
         return new
     return input
 
-
 @app.post('/api/utility/xml2dcr')
 def loadXML():
+    """
+    Loads XML from HTTP headers of DCR graphs of DCRgraphs.net format. Stores the graphs as json and ties it to the signed in user.
+
+    :returns: If successful, GID and code 201, 
+            if not logged in, Status and code 403, 
+            if malformed request data, status and code 400
+    """
     xml = request.data
     header = request.headers
     if not dm.checkLoggedIn(header):
@@ -55,6 +70,15 @@ def loadXML():
 
 @app.get('/api/graphs/<string:GID>')
 def getGraph(GID):
+    """
+    Fetches a specific graph based on GID
+
+    :param GID: ID of a graph
+
+    :returns: If successful, json representation of graph and code 200, 
+            if not correct security key, Status and code 403, 
+            otherwise unknown GID, status and code 404 #At the moment not reachable because of security strictness
+    """
     if not dm.checkAccessGraph(request.headers, GID):
         return jsonify({"Status":'Access Denied'}),403
     
@@ -65,6 +89,13 @@ def getGraph(GID):
 
 @app.get('/api/graphs')
 def getGraphs():
+    """
+    Fetches all GIDs a user has access to
+
+    :returns: If successful, list of GIDs and code 200, 
+            if not logged in, Status and code 401, 
+            otherwise failed due to unknown user, status and code 404
+    """
     header = request.headers
     if not dm.checkLoggedIn(header):
         return jsonify({"Status":'Not Logged In/ Invalid Authorization Type'}),401
@@ -77,15 +108,31 @@ def getGraphs():
 
 @app.delete('/api/graphs/<string:GID>')
 def deleteGraph(GID):
+    """
+    Deletes a graph and all associated simulations
+
+    :param GID: ID of graph
+
+    :returns: if not correct security key, Status and code 403, 
+            otherwise successful, status and code 200 
+    """
     if not dm.checkAccessGraph(request.headers, GID):
         return jsonify({"Status":'Access Denied'}),403
     
     dm.removeGraph(GID,request.headers['Authorization'])
     return jsonify({"Status":"Success"}),200
 
-# Creates a DCRGraph object of GID
 @app.post('/api/graphs/<string:GID>/DCRsimulator')
 def SimulateInit(GID):
+    """
+    Creates a simulation of a graph as a DCR object, that will be tied to the graph.
+
+    :param GID: ID of graph
+
+    :returns: if successful, SID and code 201
+            if not correct security key, Status and code 403, 
+            otherwise, unknown GID and code 404
+    """
     if not dm.checkAccessGraph(request.headers, GID):
         return jsonify({"Status":'Access Denied'}),403
     
@@ -102,6 +149,16 @@ def SimulateInit(GID):
 
 @app.get('/api/graphs/<string:GID>/sims/<string:SID>')
 def getSimulation(GID, SID):
+    """
+    Gets a specific simulation tied to a graph
+
+    :param GID: ID of graph
+    :param SID: ID of simulation
+
+    :returns: if successful, string representation of simulation and code 200
+            if not correct security key, Status and code 403, 
+            otherwise, unknown SID and code 404
+    """
     if not dm.checkAccessSim(request.headers, GID, SID):
         return jsonify({"Status":'Access Denied'}),403
     
@@ -112,6 +169,14 @@ def getSimulation(GID, SID):
 
 @app.get('/api/graphs/<string:GID>/sims')
 def getSims(GID):
+    """
+    Fetches a list of simulations of a graph
+
+    :param GID: ID of graph
+
+    :returns: if not correct security key, Status and code 403, 
+            otherwise, successful, string representation of simulation and code 200
+    """
     if not dm.checkAccessGraph(request.headers, GID):
         return jsonify({"Status":'Access Denied'}),403
     
@@ -120,6 +185,15 @@ def getSims(GID):
 
 @app.delete('/api/graphs/<string:GID>/sims/<string:SID>')
 def deleteSim(GID, SID):
+    """
+    Deletes a specific simulation of a graph
+
+    :param GID: ID of graph
+    :param SID: ID of simulation
+
+    :returns: if not correct security key, Status and code 403, 
+            otherwise, successful, Status and code 200
+    """
     if not dm.checkAccessSim(request.headers, GID, SID):
         return jsonify({"Status":'Access Denied'}),403
     
@@ -128,6 +202,16 @@ def deleteSim(GID, SID):
 
 @app.get('/api/graphs/<string:GID>/sims/<string:SID>/events')
 def getEvents(GID, SID):
+    """
+    Gets the event label map of a simulation tied to a graph
+
+    :param GID: ID of graph
+    :param SID: ID of simulation
+
+    :returns: if successful, json of label map with keys as event IDs and items as labels and code 200
+            if not correct security key, Status and code 403, 
+            otherwise, unknown SID and code 404
+    """
     if not dm.checkAccessSim(request.headers, GID, SID):
         return jsonify({"Status":'Access Denied'}),403
     
@@ -139,11 +223,20 @@ def getEvents(GID, SID):
 
 @app.get('/api/graphs/<string:GID>/sims/<string:SID>/relations')
 def getRelations(GID, SID):
+    """
+    Gets the relations between event IDs of a simulation tied to a graph
+
+    :param GID: ID of graph
+    :param SID: ID of simulation
+
+    :returns: if successful, json of relations and code 200
+            if not correct security key, Status and code 403, 
+            otherwise, unknown SID and code 404
+    """
     if not dm.checkAccessSim(request.headers, GID, SID):
         return jsonify({"Status":'Access Denied'}),403
     
     sim = dm.findSim(SID)
-    '''print(sim)'''
     if sim:
         return jsonify(GetAllConds(sim)),200
     
@@ -151,6 +244,16 @@ def getRelations(GID, SID):
 
 @app.get('/api/graphs/<string:GID>/sims/<string:SID>/included')
 def getIncluded(GID, SID):
+    """
+    Gets the included events of a simulation tied to a graph
+
+    :param GID: ID of graph
+    :param SID: ID of simulation
+
+    :returns: if successful, list of included event IDs and items as labels and code 200
+            if not correct security key, Status and code 403, 
+            otherwise, unknown SID and code 404
+    """
     if not dm.checkAccessSim(request.headers, GID, SID):
         return jsonify({"Status":'Access Denied'}),403
     
@@ -162,6 +265,16 @@ def getIncluded(GID, SID):
 
 @app.get('/api/graphs/<string:GID>/sims/<string:SID>/pending')
 def getPending(GID, SID):
+    """
+    Gets the pending events of a simulation tied to a graph
+
+    :param GID: ID of graph
+    :param SID: ID of simulation
+
+    :returns: if successful, a list of pending event IDs and code 200
+            if not correct security key, Status and code 403, 
+            otherwise, unknown SID and code 404
+    """
     if not dm.checkAccessSim(request.headers, GID, SID):
         return jsonify({"Status":'Access Denied'}),403
     
@@ -173,6 +286,16 @@ def getPending(GID, SID):
 
 @app.get('/api/graphs/<string:GID>/sims/<string:SID>/executed')
 def getExecuted(GID, SID):
+    """
+    Gets executed events of a simulation tied to a graph
+
+    :param GID: ID of graph
+    :param SID: ID of simulation
+
+    :returns: if successful, list of executed event IDs and code 200
+            if not correct security key, Status and code 403, 
+            otherwise, unknown SID and code 404
+    """
     if not dm.checkAccessSim(request.headers, GID, SID):
         return jsonify({"Status":'Access Denied'}),403
     
@@ -184,6 +307,18 @@ def getExecuted(GID, SID):
 
 @app.post('/api/graphs/<string:GID>/DCRsimulator/<string:SID>/executeEvent/<string:event>')
 def executeEvent(GID, SID, event):
+    """
+    Executes a specific event on a simulation tied to a graph
+
+    :param GID: ID of graph
+    :param SID: ID of simulation
+    :param event: event ID as a string
+
+    :returns: if successful, Status an code 200
+            if not correct security key, Status and code 403, 
+            if unsuccessful, json of successful and unsuccessful events and code 409
+            otherwise, unknown SID and code 404
+    """
     if not dm.checkAccessSim(request.headers, GID, SID):
         return jsonify({"Status":'Access Denied'}),403
     
@@ -197,6 +332,18 @@ def executeEvent(GID, SID, event):
 
 @app.post('/api/graphs/<string:GID>/DCRsimulator/<string:SID>/executeTrace')
 def executeTrace(GID, SID):
+    """
+    Executes a trace of events on a simulation tied to a graph. The trace is taken from the HTTP headers body
+
+    :param GID: ID of graph
+    :param SID: ID of simulation
+
+    :returns: if successful, Status an code 200
+            if not correct security key, Status and code 403, 
+            if an unsuccessful event, json of successful and unsuccessful events and code 409
+            if malformed data, Status and code 400
+            otherwise, unknown SID and code 404
+    """
     if not dm.checkAccessSim(request.headers, GID, SID):
         return jsonify({"Status":'Access Denied'}),403
     
